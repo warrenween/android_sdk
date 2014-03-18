@@ -10,14 +10,14 @@ include:
 - Broad comaptibility
 - Adhear to the same overall design as the iOS SDK so that cross-platform installation is easier to understand.
 
-In addition, to the extent it does not contradict the above principles, we
+In addition, to the extent it does not contradict the above principles,
 the SDK is designed with Android design principls and flow in mind. The
 Android developer should feel at home with this SDK.
 
 How to Use the SDK
 ------------------
 
-**Requirements:** To use the SDK, you must have a Chartbeat AccountID. 
+**Requirements:** To use the SDK, you must have a Chartbeat AccountID, and your application must have the android.permission.INTERNET and android.permission.ACCESS_NETWORK_STATE permissions.
 
 **Overview:**
 Once you include the jar in your project in the usual manner, you can use
