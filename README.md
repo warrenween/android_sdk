@@ -21,11 +21,26 @@ How to Use the SDK
 
 **Overview:**
 Once you include the jar in your project in the usual manner, you can use
-the CBTracker class's static functions to start and stop the tracker, and
-update it information about the application state. For example, once the
+the Tracker class's static functions to start and stop the tracker, and
+update it with information about the application state. For example, once the
 application has started, you will need to set the ViewId every time the view
 changes. **Important: the tracker will not start until you have called
 trackView at least once.** You can also set a good deal of optional information
 such as the author and so on.
 
+**Tracker Class:** The tracker class is the only class you will need to access
+to use the SDK.
 
+* Start by initializing the tracker with one of the startTrackerWithaccountId() functions.
+* Next, if you have information about how the user was referred to your app,
+you can call setAppReferrer() with a string indicating how the user was referred.
+* Whenever a user enters a view, you must call trackView, typically from your
+Activity's onResume() function.
+* If you wish to have the SDK properly handle situations where the app goes leaves
+the foreground, you should also call userLeftView, which can be done from your
+activity's onPause() function.
+* You will usually want to call userInteracted() from your onUserInteraction() function,
+as well, and any time the user types, you will want to call userTyped()
+
+There are also a variety of other methods for seting optional information, such as
+author and section; however the above functions should be considered most important.
