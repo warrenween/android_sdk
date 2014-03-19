@@ -4,6 +4,7 @@
 package com.chartbeat.androidsdk;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.UUID;
@@ -42,6 +43,8 @@ import android.webkit.WebView;
  * @author bjorn
  */
 public final class Tracker {
+	public static final boolean DEBUG = true;
+
 	private static final String USER_AGENT_SUFFIX = "/App";
 	private static final long SDK_MAJOR_VERSION = 0;
 	private static final long SDK_MINOR_VERSION = 0;
@@ -49,7 +52,6 @@ public final class Tracker {
 	private static final String SDK_VERSION = SDK_MAJOR_VERSION + "." + SDK_MINOR_VERSION + "_" + SDK_VERSION_SUFFIX;
 	private static final String TAG = "ChartBeat Tracker";
 	private static Tracker singleton;
-	private static final boolean DEBUG = true;
 	
 	private final String accountId, host, packageId, userAgent;
 	private String viewId, viewTitle, token;
@@ -64,6 +66,7 @@ public final class Tracker {
 	private final Pinger pinger;
 	private final EngagementTracker engagementTracker;
 	private final Context context;
+	private int sequentialErrors; //counts 503 errors.
 	
 	private Tracker( String accountId, String host, Context context ) {
 		this.accountId = accountId;
@@ -104,14 +107,18 @@ public final class Tracker {
 	}
 	
 	private void trackViewImpl( String viewId, String viewTitle ) {
-		this.internalReferrer = viewId;
+		this.internalReferrer = this.viewId;
 		this.viewId = viewId;
 		this.viewTitle = viewTitle;
 		this.token = UUID.randomUUID().toString();
 		this.timeCurrentViewStarted = System.currentTimeMillis();
 		ForegroundTracker.activityStarted();
-		timer.start();
+		engagementTracker.userEnteredView();
 		userInfo.visited();
+		if( this.internalReferrer != null )
+			userInfo.markUserAsOld();
+		timer.start();
+		timer.unsuspend();
 		if( DEBUG )
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: TRACK VIEW :: " + this.viewId );
 	}
@@ -130,6 +137,7 @@ public final class Tracker {
 	}
 	private void userLeftViewImpl(String viewId) {
 		ForegroundTracker.activityEnded();
+		engagementTracker.userLeftView();
 		if( DEBUG )
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: USER LEFT" );
 	}
@@ -141,19 +149,33 @@ public final class Tracker {
 		
 		// this is called by the timer on an arbitrary thread.
 		long now = System.currentTimeMillis();
-		
-		HashMap<String,String> parameters = new HashMap<String,String>();
-		parameters.put("h", host);
-		parameters.put("d", packageId);
-		parameters.put("p", viewId);
-		parameters.put("t", token);
-		parameters.put("u", userInfo.getUserId());
-		parameters.put("g", accountId);
-		if( appReferrer != null )
-			parameters.put("r", appReferrer);
-		else if( internalReferrer != null )
-			parameters.put("v", internalReferrer);
 
+		ArrayList<Pinger.KeyValuePair> parameters = new ArrayList<Pinger.KeyValuePair>(30);
+		parameters.add(new Pinger.KeyValuePair("h", "Host", host));
+		parameters.add(new Pinger.KeyValuePair("d", "Real Domain", packageId));
+		parameters.add(new Pinger.KeyValuePair("p", "Path", viewId));
+		parameters.add(new Pinger.KeyValuePair("t", "Token", token));
+		parameters.add(new Pinger.KeyValuePair("u", "User Id", userInfo.getUserId()));
+		parameters.add(new Pinger.KeyValuePair("g", "Account Id", accountId));
+		
+		if( appReferrer != null )
+			parameters.add(new Pinger.KeyValuePair("r", "External Referrer", appReferrer));
+		else if( internalReferrer != null )
+			parameters.add(new Pinger.KeyValuePair("v", "Internal Referrer", internalReferrer));
+		
+		//FIXME: g0 - sections
+		//FIXME: g1 - authors
+		//FIXME: g2 - zones
+
+		if( viewTitle != null && allParameters )
+			parameters.add(new Pinger.KeyValuePair("i", "View Title", viewTitle));
+		
+		if( allParameters )
+			parameters.add(new Pinger.KeyValuePair("n", "New User?", userInfo.isNewUser() ? "1" : "0"));
+		
+		if( allParameters )
+			parameters.add(new Pinger.KeyValuePair("f", "Visit Frequency", userInfo.getUserVisitFrequencyString()));
+		
 		if( !isInBackground || allParameters ) {
 			long timeInCurrentView = now - this.timeCurrentViewStarted;
 			if( timeInCurrentView < 0 ) //could happen if time is adjusting
@@ -162,59 +184,72 @@ public final class Tracker {
 			double cd = timeInCurrentView / 1000.0; //seconds
 			cd = cd/60; //minutes
 			// print with one decimal precision:
-			parameters.put("c", String.format( Locale.US, "%.1f", cd ));
+			parameters.add(new Pinger.KeyValuePair("c", "Time on View (m)", String.format( Locale.US, "%.1f", cd )));
 		}
-		int decay = timer.expectedNextSleep(isInBackground);
+		if( allParameters ) {
+			parameters.add( new Pinger.KeyValuePair( "W", "Device Width", String.valueOf(screenWidth) ) );
+			parameters.add( new Pinger.KeyValuePair( "w", "Window Height", String.valueOf(windowHeight) ) );
+		}
+		
+		int decay = timer.expectedNextInterval(isInBackground);
 		if( decay != timer.getCurrentInterval() || allParameters )
-			parameters.put("j", String.valueOf( timer.expectedNextSleep(isInBackground)*2) );
-		// FIXME: need r/v
-		if( allParameters ) { //or is the given parameter has changed!!!
-			//FIXME: g0 - sections
-			//FIXME: g1 - authors
-			//FIXME: g2 - zones
-			if( viewTitle != null )
-				parameters.put("i", viewTitle);
-			parameters.put("n", userInfo.isNewUser() ? "1" : "0" ); //FIXME: set 1 just the first time, or every time?
-			
-			parameters.put("f", userInfo.getUserVisitFrequencyString());
-			// c- handled elsewhere
-			//parameters.put("W", String.valueOf(screenWidth) );
-			//parameters.put("w", String.valueOf(windowHeight) );
-			// j - handled elsewhere
-			// FIXME: D
-			//FIXME: b, lg, lt
-			parameters.put("V", SDK_VERSION);
-		}
+			parameters.add(new Pinger.KeyValuePair("j", "Decay", String.valueOf( timer.expectedNextInterval(isInBackground)*2) ));
+		
+		// FIXME: D
+		// FIXME: b
+		// FIXME: lg/lt
+		if( allParameters )
+			parameters.add(new Pinger.KeyValuePair("V", "SDK Version", SDK_VERSION));
 		
 		// engagement keys
 		EngagementData ed = engagementTracker.ping();
-		parameters.put("E", String.valueOf(ed.totalEngagement));
-		parameters.put("R", ed.reading ? "1" : "0" );
-		parameters.put("W", ed.typed ? "1" : "0" );
-		parameters.put("I", ed.idle ? "1" : "0" );
+		parameters.add(new Pinger.KeyValuePair("E", "Engaged Seconds", String.valueOf(ed.totalEngagement)));
+		parameters.add(new Pinger.KeyValuePair("R", "Reading", ed.reading ? "1" : "0" ));
+		parameters.add(new Pinger.KeyValuePair("W", "Writing", ed.typed ? "1" : "0" ));
+		parameters.add(new Pinger.KeyValuePair("I", "Idle", ed.idle ? "1" : "0" ));
 		
-		//FIXME position keys
+		//FIXME position keys, x, y, w, o, m
 		
+		
+		// last key must be an empty underscore
+		parameters.add(new Pinger.KeyValuePair("_", "End Marker", ""));
+
 		if( DEBUG ) {
 			Log.d(TAG, "PING! User Data: " + parameters );
 			Log.d(TAG, "PING! User agent " + userAgent );
 		}
 		if( Pinger.isConnected(context) ) {
 			boolean exception = false;
-			int code = 503;
+			int code = 0;
 			try {
 				code = pinger.ping(parameters);
+				if( DEBUG )
+					Log.d(TAG, "ping returned with: " + code );
 			} catch (IOException e) {
 				exception = true;
 				Log.w(TAG, "Error pining chartbeat: " + e );
 			}
-			timer.changeTimeInterval(code);
+			if( code == 503 ) {
+				++sequentialErrors;
+			} else {
+				sequentialErrors = 0;
+			}
+			System.out.println( sequentialErrors );
+			if( sequentialErrors == 3 ) {
+				sequentialErrors = 0;
+				allParameters = true;
+				timer.suspend();
+			}
 			timer.isInBackground( isInBackground );
-			if( code == 500 || exception ) {
+			if( code == 500 || exception || code == 400 ) {
 				allParameters = true;
 				engagementTracker.lastPingFailed(ed);
+				if( code == 400 || code == 500 ) {
+					timer.retryImmediately();
+				}
 			}
 			if( code == 200 ) {
+				allParameters = false;
 				internalReferrer = null;
 				appReferrer = null;
 			}
@@ -222,6 +257,8 @@ public final class Tracker {
 			if( DEBUG ) {
 				Log.d(TAG, "Not pinging: no network connection detected." );
 			}
+			allParameters = true;
+			engagementTracker.lastPingFailed(ed);
 		}
 	}
 	

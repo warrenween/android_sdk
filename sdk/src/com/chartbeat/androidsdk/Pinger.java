@@ -4,18 +4,19 @@
 package com.chartbeat.androidsdk;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.util.EntityUtils;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.util.Log;
 
 /**
@@ -25,9 +26,15 @@ import android.util.Log;
  *
  */
 final class Pinger {
-	private static final String URL = "http://ping.chartbeat.net/ping";
+	private static final boolean TEST_RANDOM_FAILURES = false;
+	private static final String SCHEME = "http";
+	private static final String AUTHORITY = "ping.chartbeat.net";
+	private static final String PATH = "ping";
+//	private static final String URL = "http://ping.chartbeat.net/ping";
 	private static final String TAG = "Chartbeat Pinger";
 	DefaultHttpClient httpClient = new DefaultHttpClient();
+	
+	private final Random random = new Random(0); //used only for testing
 
 	/**
 	 * 
@@ -38,23 +45,41 @@ final class Pinger {
 	
 	/** returns true on success, false if the server wants us to wait, and an exception in any other case.
 	 * */
-	int ping(HashMap<String,String> parameters) throws IOException {
+	int ping(List<KeyValuePair> parameters) throws IOException {
 	    HttpResponse response;
 		while( true ) {
 			// setup the call
-			HttpGet get = new HttpGet(URL);
-			BasicHttpParams params = new BasicHttpParams();
-			for( HashMap.Entry<String,String> e : parameters.entrySet() )
-				params.setParameter(e.getKey(), e.getValue());
-			get.setParams(params);
+			Uri.Builder builder = new Uri.Builder().scheme(SCHEME).authority(AUTHORITY).path(PATH);
+			for( KeyValuePair e : parameters )
+				builder.appendQueryParameter(e.getKey(), e.getValue());
+			HttpGet get = new HttpGet( builder.build().toString() );
+			if( Tracker.DEBUG )
+				System.out.println( get.getURI() );
+			
 			// execute the call
 			response = httpClient.execute(get);
-			response.getEntity().consumeContent();
-			// results:
 		    StatusLine statusLine = response.getStatusLine();
 		    int code = statusLine.getStatusCode();
+			if( Tracker.DEBUG && ( code < 200 || code >= 300 ) ) {
+				System.out.println( EntityUtils.toString(response.getEntity()) );
+			} else {
+				response.getEntity().consumeContent();
+			}
+			
+			// results:
 		    switch( code ) {
 		    case 200:
+		    	if( TEST_RANDOM_FAILURES ) {
+		    		int r = random.nextInt(6);
+		    		if( r == 0 ) {
+		    			Log.w(TAG, "Simulating a fake 400 response." );
+		    			return 400;
+		    		}
+		    		if( r > 2 ) {
+		    			Log.w(TAG, "Simulating a fake 503 response." );
+		    			return 503;
+		    		}
+		    	}
 		    case 500:
 		    case 503:
 		    	return code;
@@ -92,5 +117,23 @@ final class Pinger {
 	    if( info == null )
 	    	return false;
 	    return info.isConnectedOrConnecting();
+	}
+	
+	public static class KeyValuePair {
+		public final String key, note, value;
+		public KeyValuePair(String key, String note, String value) {
+			this.key = key;
+			this.note = note;
+			this.value = value;
+		}
+		public String getKey() {
+			return key;
+		}
+		public String getValue() {
+			return value;
+		}
+		public String toString() {
+			return key + " (" + note + ")=" + value;
+		}
 	}
 }

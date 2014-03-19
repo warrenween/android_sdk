@@ -11,7 +11,7 @@ import java.util.TimerTask;
 final class EngagementTracker extends TimerTask {
 	private int engagementWindow = 5;
 	private boolean engaged, typed;
-	private int totalEngagement;
+	private long totalEngagement;
 	private final int INITIAL_ENGAGEMENT = 5; //user is always considered engaged for the first 5 seconds.
 	private long lastEngaged;
 	private final long startTime;
@@ -40,17 +40,25 @@ final class EngagementTracker extends TimerTask {
 		typed = true;
 		lastEngaged = System.currentTimeMillis();
 	}
+	
+	synchronized public void userEnteredView() {
+		totalEngagement = 0;
+		lastEngaged = 0;
+	}
+
+	synchronized public void userLeftView() {
+		//totalEngagement = 0;
+		//lastEngaged = 0;
+	}
 
 	synchronized public EngagementData ping() {
 		EngagementData ret = new EngagementData( totalEngagement, engaged, typed );
-		totalEngagement = 0;
 		engaged = false;
 		typed = false;
 		return ret;
 	}
 	
 	synchronized void lastPingFailed(EngagementData ed) {
-		totalEngagement += ed.totalEngagement;
 		engaged |= ed.engaged;
 		typed |= ed.typed;
 	}
@@ -64,8 +72,8 @@ final class EngagementTracker extends TimerTask {
 	}
 	static class EngagementData {
 		final boolean engaged, typed, reading, idle;
-		final int totalEngagement;
-		private EngagementData( int totalEngagement, boolean engaged, boolean typed ) {
+		final long totalEngagement;
+		private EngagementData( long totalEngagement, boolean engaged, boolean typed ) {
 			this.engaged = engaged;
 			this.typed = typed;
 			this.reading = engaged && (!typed);

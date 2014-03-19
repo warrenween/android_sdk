@@ -5,17 +5,13 @@ package com.chartbeat.androidsdk;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
-import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.text.format.DateFormat;
 import android.util.Log;
 
 /**
@@ -27,7 +23,8 @@ public final class UserInfo {
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 	
 	private final String userId;
-	private final boolean newUser;
+	private GregorianCalendar userCreated;
+	private boolean newUser;
 	private final TreeSet<GregorianCalendar> visitedDates;
 	private final SharedPreferences prefs;
 	/**
@@ -37,6 +34,16 @@ public final class UserInfo {
 		prefs = context.getSharedPreferences("com.chartbeat.androidsdk.user", Context.MODE_PRIVATE);
 		String userId = prefs.getString("userid", null);
 		
+		//check for corruption
+		if( userId != null ) {
+			try {
+				UUID.fromString(userId);
+			} catch(IllegalArgumentException iae) {
+				Log.e(TAG, "UserId has become corrupt" + userId );
+				userId = null;
+			}
+		}
+		// create new user
 		if( userId == null ) {
 			userId = UUID.randomUUID().toString();
 			SharedPreferences.Editor ed = prefs.edit();
@@ -48,12 +55,32 @@ public final class UserInfo {
 		}
 		this.userId = userId;
 		
+		// determine when the user was created:
+		// if this isn't set, we create it today.
+		String createdString = prefs.getString("created-"+userId,null);
+		if( createdString != null ) {
+			userCreated = new GregorianCalendar();
+			try {
+				userCreated.setTime(dateFormat.parse(createdString));
+			} catch( ParseException pe ) {
+				Log.e(TAG, "Date created has become corrupt" + createdString );
+				createdString = null;
+			}
+		}
+		if( createdString == null ) {
+			userCreated = today();
+			SharedPreferences.Editor ed = prefs.edit();
+			ed.putString("created-"+userId, dateFormat.format(userCreated.getTime()));
+			ed.commit();
+		}
 
+		// load visited dates:
 		visitedDates = new TreeSet<GregorianCalendar>();
 		String vd = prefs.getString("visits-" + userId, null);
 		GregorianCalendar sixteenDaysAgo = today();
 		sixteenDaysAgo.roll(GregorianCalendar.DATE, -16);
 		if( vd != null ) {
+			Log.d(TAG, "Retrieving user visited dates: " + vd );
 			for( String dateString : vd.split(",") ) {
 				GregorianCalendar gc = new GregorianCalendar();
 				try {
@@ -82,9 +109,11 @@ public final class UserInfo {
 			String s = "";
 			boolean first = true;
 			for( GregorianCalendar c : visitedDates ) {
-				if( !first )
-					s = "," + s ;
-				s = s + dateFormat.format(c.getTime()) ;
+				String d = dateFormat.format(c.getTime()) ;
+				if( first )
+					s = d ;
+				else
+					s = s + "," + d;
 				first = false;
 			}
 			Log.d(TAG, "Storing user visited dates: " + s );
@@ -95,14 +124,30 @@ public final class UserInfo {
 	}
 	
 	public String getUserVisitFrequencyString() {
-		char a = 'F';
-		
 		GregorianCalendar today = today();
 		GregorianCalendar cal[] = new GregorianCalendar[16];
+		int validDates = 0;
+//		GregorianCalendar userCreated = today();
+//		userCreated.add(GregorianCalendar.DATE, -8);
 		for( int i=0; i<16; ++i ) {
 			cal[i] = (GregorianCalendar) today.clone();
-			cal[i].roll(GregorianCalendar.DATE, i);
+			cal[i].add(GregorianCalendar.DATE, -i);
+			//System.out.println( dateFormat.format(cal[i].getTime()) + " v " + dateFormat.format(userCreated.getTime()) + " : " + cal[i].compareTo(userCreated) );
+			if( cal[i].compareTo(userCreated) >= 0 )
+				validDates = i;
 		};
+//		System.out.println( validDates );
+//		System.out.println( "" + toHexDigit(validDates) );
+//		System.exit(0);
+		
+//		System.out.println( "::::::::::: --> " + dateFormat.format(today.getTime())
+//				+ " : " + dateFormat.format(cal[0].getTime())
+//				+ " : " + dateFormat.format(cal[1].getTime())
+//				+ " : " + dateFormat.format(cal[2].getTime())
+//				+ "... : " );
+//		for( GregorianCalendar gc : visitedDates ) {
+//			System.out.println( "\t" + dateFormat.format(gc.getTime()) );
+//		}
 		int b =  (visitedDates.contains(cal[15])?1:0) << 3
 			| (visitedDates.contains(cal[14])?1:0) << 2
 			| (visitedDates.contains(cal[13])?1:0) << 1
@@ -120,7 +165,7 @@ public final class UserInfo {
 			| (visitedDates.contains(cal[ 1])?1:0) << 1
 			| (visitedDates.contains(cal[ 0])?1:0) << 0 ;
 		
-		return new String( new char[] { a, toHexDigit(b), toHexDigit(c), toHexDigit(d), toHexDigit(e) } );
+		return new String( new char[] { toHexDigit(validDates), toHexDigit(b), toHexDigit(c), toHexDigit(d), toHexDigit(e) } );
 	}
 	
 	private static GregorianCalendar today() {
@@ -137,5 +182,9 @@ public final class UserInfo {
 		} else {
 			throw new RuntimeException( "I is not in hex digit range: " + i );
 		}
+	}
+
+	public void markUserAsOld() {
+		newUser = false;
 	}
 }
