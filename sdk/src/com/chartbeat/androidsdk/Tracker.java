@@ -194,8 +194,10 @@ public final class Tracker {
 			parameters.add( new Pinger.KeyValuePair( "w", "Window Height", String.valueOf(windowHeight) ) );
 		}
 		
-		int decay = timer.expectedNextInterval(isInBackground);
-		if( decay != timer.getCurrentInterval() || allParameters )
+		//although j is listed as "optional", when I only included it at the start and when it changed,
+		// I got frequent, spurious 500's.
+		//int decay = timer.expectedNextInterval(isInBackground);
+		//if( decay != timer.getCurrentInterval() || allParameters )
 			parameters.add(new Pinger.KeyValuePair("j", "Decay", String.valueOf( timer.expectedNextInterval(isInBackground)*2) ));
 		
 		// FIXME: D
@@ -237,7 +239,7 @@ public final class Tracker {
 			} else {
 				sequentialErrors = 0;
 			}
-			System.out.println( sequentialErrors );
+			//System.out.println( sequentialErrors );
 			if( sequentialErrors == 3 ) {
 				sequentialErrors = 0;
 				allParameters = true;
@@ -245,6 +247,7 @@ public final class Tracker {
 			}
 			timer.isInBackground( isInBackground );
 			if( code == 500 || exception || code == 400 ) {
+				//FIXME: on 500 don't resend D
 				allParameters = true;
 				engagementTracker.lastPingFailed(ed);
 				if( code == 400 || code == 500 ) {

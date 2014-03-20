@@ -133,7 +133,7 @@ public final class UserInfo {
 		for( int i=0; i<16; ++i ) {
 			cal[i] = (GregorianCalendar) today.clone();
 			cal[i].add(GregorianCalendar.DATE, -i);
-			//System.out.println( dateFormat.format(cal[i].getTime()) + " v " + dateFormat.format(userCreated.getTime()) + " : " + cal[i].compareTo(userCreated) );
+//			System.out.println( dateFormat.format(cal[i].getTime()) + " v " + dateFormat.format(userCreated.getTime()) + " : " + cal[i].compareTo(userCreated) );
 			if( cal[i].compareTo(userCreated) >= 0 )
 				validDates = i;
 		};

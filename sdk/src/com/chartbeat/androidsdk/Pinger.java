@@ -55,14 +55,16 @@ final class Pinger {
 				builder.appendQueryParameter(e.getKey(), e.getValue());
 			HttpGet get = new HttpGet( builder.build().toString() );
 			if( Tracker.DEBUG )
-				System.out.println( get.getURI() );
+				Log.d(TAG,"Ping URL: " + get.getURI().toString());
 			
 			// execute the call
 			response = httpClient.execute(get);
 		    StatusLine statusLine = response.getStatusLine();
 		    int code = statusLine.getStatusCode();
 			if( Tracker.DEBUG && ( code < 200 || code >= 300 ) ) {
-				System.out.println( EntityUtils.toString(response.getEntity()) );
+				Log.d(TAG,"-----Error. Response from server:" );
+				Log.d(TAG,EntityUtils.toString(response.getEntity()) );
+				Log.d(TAG,"-----" );
 			} else {
 				response.getEntity().consumeContent();
 			}

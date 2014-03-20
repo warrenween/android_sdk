@@ -19,7 +19,7 @@ How to Use the SDK
 
 **Requirements:** To use the SDK, you must have a Chartbeat AccountID, and
 your application must have the android.permission.INTERNET and
-android.permission.ACCESS_NETWORK_STATE permissions.
+android.permission.ACCESS_NETWORK_STATE permissions. The SDK requires API Level 8 (Android 2.2).
 
 **Overview:**
 Once you include the jar in your project in the usual manner, all functionality
@@ -56,4 +56,4 @@ has multiple activities, be sure to do this in each one.
 There are also a variety of other methods for seting optional information, such as
 author and section; however the above functions are required. For a complete list, as
 well as detailed usage information about the above functions,
-see the Javadocs for com.chartbeat.androidsdk.Tracker
+see the Javadocs for com.chartbeat.androidsdk.Tracker.
