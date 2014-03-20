@@ -1,3 +1,7 @@
+/**
+ * Chartbeat Android API by Bjorn Roche.
+ * (c) Chartbeat 2014
+ */
 package com.chartbeat.androidsdk;
 
 import java.util.TimerTask;
@@ -17,7 +21,7 @@ final class EngagementTracker extends TimerTask {
 	private final long startTime;
 	private java.util.Timer timer = new java.util.Timer();
 
-	public EngagementTracker() {
+	EngagementTracker() {
 		engaged = false;
 		typed = false;
 		lastEngaged = 0;
@@ -27,31 +31,31 @@ final class EngagementTracker extends TimerTask {
 		timer.schedule( this, 0, 1000 );
 	}
 	
-	synchronized public void setEngagementWindow( int window ) {
+	synchronized void setEngagementWindow( int window ) {
 		engagementWindow = window;
 	}
 	
-	synchronized public void userEngaged() {
+	synchronized void userEngaged() {
 		engaged = true;
 		lastEngaged = System.currentTimeMillis();
 	}
 	
-	synchronized public void userTyped() {
+	synchronized void userTyped() {
 		typed = true;
 		lastEngaged = System.currentTimeMillis();
 	}
 	
-	synchronized public void userEnteredView() {
+	synchronized void userEnteredView() {
 		totalEngagement = 0;
 		lastEngaged = 0;
 	}
 
-	synchronized public void userLeftView() {
+	synchronized void userLeftView() {
 		//totalEngagement = 0;
 		//lastEngaged = 0;
 	}
 
-	synchronized public EngagementData ping() {
+	synchronized EngagementData ping() {
 		EngagementData ret = new EngagementData( totalEngagement, engaged, typed );
 		engaged = false;
 		typed = false;

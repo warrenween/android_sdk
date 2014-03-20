@@ -1,5 +1,6 @@
 /**
- * 
+ * Chartbeat Android API by Bjorn Roche.
+ * (c) Chartbeat 2014
  */
 package com.chartbeat.androidsdk;
 
@@ -32,14 +33,14 @@ final class Pinger {
 	private static final String PATH = "ping";
 //	private static final String URL = "http://ping.chartbeat.net/ping";
 	private static final String TAG = "Chartbeat Pinger";
-	DefaultHttpClient httpClient = new DefaultHttpClient();
+	private DefaultHttpClient httpClient = new DefaultHttpClient();
 	
 	private final Random random = new Random(0); //used only for testing
 
 	/**
 	 * 
 	 */
-	public Pinger(String userAgent) {
+	Pinger(String userAgent) {
 		httpClient.getParams().setParameter(CoreProtocolPNames.USER_AGENT, "Custom user agent");
 	}
 	
@@ -110,7 +111,7 @@ final class Pinger {
 		}
 	}
 	
-	public static boolean isConnected(Context context)
+	static boolean isConnected(Context context)
 	{
 	    ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 	    android.net.NetworkInfo info = cm.getActiveNetworkInfo();
@@ -119,7 +120,7 @@ final class Pinger {
 	    return info.isConnectedOrConnecting();
 	}
 	
-	public static class KeyValuePair {
+	static final class KeyValuePair {
 		public final String key, note, value;
 		public KeyValuePair(String key, String note, String value) {
 			this.key = key;

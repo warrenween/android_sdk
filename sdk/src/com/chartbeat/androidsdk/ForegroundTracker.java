@@ -1,3 +1,7 @@
+/**
+ * Chartbeat Android API by Bjorn Roche.
+ * (c) Chartbeat 2014
+ */
 package com.chartbeat.androidsdk;
 
 import java.util.TimerTask;
@@ -20,7 +24,7 @@ final class ForegroundTracker {
     private ForegroundTracker() {
     }
     
-    public static void activityEnded() {
+    static void activityEnded() {
         activityTransitionTimer = new java.util.Timer();
         TimerTask activityTransitionTimerTask = new TimerTask() {
             public void run() {
@@ -31,7 +35,7 @@ final class ForegroundTracker {
         activityTransitionTimer.schedule(activityTransitionTimerTask, MAX_ACTIVITY_TRANSITION_TIME_MS);
     }
 
-    public static void activityStarted() {
+    static void activityStarted() {
         if (activityTransitionTimer != null) {
             activityTransitionTimer.cancel();
         }
@@ -39,7 +43,7 @@ final class ForegroundTracker {
         background = false;
     }
     
-    public static boolean isInBackground() {
+    static boolean isInBackground() {
     	return background;
     }
 }

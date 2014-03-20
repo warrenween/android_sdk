@@ -1,5 +1,6 @@
 /**
- * 
+ * Chartbeat Android API by Bjorn Roche.
+ * (c) Chartbeat 2014
  */
 package com.chartbeat.androidsdk;
 
@@ -19,7 +20,6 @@ public final class Timer {
 	private java.util.Timer timer;
 	private long defaultInterval = 15; // in seconds
 	private long backgroundInterval = 60;
-	private long maxInterval = 300;
 	private long currentInterval = defaultInterval;
 	private boolean inBackground;
 	private long suspendTime = 0;
@@ -31,36 +31,36 @@ public final class Timer {
 	/**
 	 * 
 	 */
-	public Timer(Tracker tracker) {
+	Timer(Tracker tracker) {
 		this.tracker = tracker;
 	}
 	
-	public void start() {
+	void start() {
 		if( timer != null )
 			return;
 		restart();
 	}
 	
-	public void restart() {
+	void restart() {
 		stop();
 		timer = new java.util.Timer("Chartbeat Timer");
 		timer.schedule( new MyTimerTask(), 0 );
 	}
 	
-	public void stop() {
+	void stop() {
 		if( timer != null )
 			timer.cancel();
 		timer = null;
 	}
 	
-	public void suspend() {
+	void suspend() {
 		suspendTime = System.currentTimeMillis();
 		isSuspended = true;
 		stop();
 	}
 	
 	/** this actually only un-suspends if ten minutes have passed */
-	public void unsuspend() {
+	void unsuspend() {
 		if( !isSuspended )
 			return;
 		long now = System.currentTimeMillis();
@@ -70,29 +70,13 @@ public final class Timer {
 		}
 	}
 	
-//	public void changeTimeInterval( int code ) {
-//		if( code == 500 ) {
-//			currentInterval = 0;
-//		} else if( code == 200 ) {
-//			currentInterval = defaultInterval;
-//		} else {
-//			if( currentInterval >= maxInterval || currentInterval <= defaultInterval ) {
-//				currentInterval = defaultInterval;
-//			} else {
-//				currentInterval *= 2;
-//				if( currentInterval > maxInterval )
-//					currentInterval = maxInterval;
-//			}
-//		}
-//	}
-	
-	public void retryImmediately() {
+	void retryImmediately() {
 		retryImmediately = true;
 	}
-	public int getCurrentInterval() {
+	int getCurrentInterval() {
 		return (int) currentInterval;
 	}
-	public int expectedNextInterval( boolean inBackground ) {
+	int expectedNextInterval( boolean inBackground ) {
 		return (int) ( inBackground ? backgroundInterval : currentInterval );
 	}
 	
@@ -119,7 +103,7 @@ public final class Timer {
 		}
 	}
 
-	public void isInBackground(boolean inBackground) {
+	void isInBackground(boolean inBackground) {
 		this.inBackground = inBackground;
 	}
 }

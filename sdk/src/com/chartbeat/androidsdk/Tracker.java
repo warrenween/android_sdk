@@ -1,11 +1,11 @@
 /**
- * (c) Chartbeat 2013
+ * Chartbeat Android API by Bjorn Roche.
+ * (c) Chartbeat 2014
  */
 package com.chartbeat.androidsdk;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -20,21 +20,24 @@ import android.view.WindowManager;
 import android.webkit.WebView;
 
 /**
- * This class is the main entry point into the Chartbeat SDK.
+ * This class is the main entry point into the Chartbeat SDK. All Chartbeat
+ * android SDK functionality is accessible through this class's public static methods.
  * 
- * Generally speaking, all applications need to implement the following
- * methods:
+ * Generally speaking, all applications <strong>must</strong> call the following
+ * methods as part of their normal operation:
  * <ul>
  * <li> <strong>startTrackerWithAccountId():</strong> call one of these methods once
  * at application launch. If this is called multiple times, only the first call will have
  * any effect -- subsequent calls will be ignored.
  * <li> <strong>trackView():</strong> call this every time the view changes. This can be done by
- * calling this function in the onResume() function of your activity.
+ * calling this function in the onResume() function of your activity. This not only updates the
+ * view, if necessary, but also ensures that the tracker knows when the app is in the foreground
+ * and engaged.
+ * <li> <strong>userLeft():</strong> call this when the user leaves the app. This can be done
+ * by calling the function in onPause() function of your activity.
  * <li> <strong>userInteracted():</strong> call this every time the user interacts with the
  * application and the application, such as touching the screen. This can be done by calling
- * the function in onUserInteraction() function of your activity.
- * <li> <strong>userLeft():</strong> call this when the user leaves the app. This can be done
- * by calling the function in onUserLeaveHint() function of your activity.
+ * the function in onUserInteracted() function of your activity.
  * </ul>
  * 
  * All other methods are optional.
@@ -86,7 +89,7 @@ public final class Tracker {
 		//This takes about 100ms on older android phones
 		this.userAgent = (new WebView(context)).getSettings().getUserAgentString() + USER_AGENT_SUFFIX;
 		this.pinger = new Pinger(userAgent);
-		this.engagementTracker = new EngagementTracker(); //FIXME: get and set engagement window
+		this.engagementTracker = new EngagementTracker(); //FIXME: get engagement window from the server and set it.
 		this.context = context;
 		this.allParameters = true;
 		
@@ -280,7 +283,7 @@ public final class Tracker {
 	/** initializes the tracker. If the tracker has already been initialized, this call will be ignored.
 	 * 
 	 * @param accountId your account id on the Chartbeat system.
-	 * @param activity the context.
+	 * @param context the context.
 	 */
 	public static void startTrackerWithAccountId( String accountId, Context context ) {
 		if( accountId == null )
@@ -304,8 +307,8 @@ public final class Tracker {
 	/** Call this whenever you display a new view. If the tracker has not been initialized,
 	 * this call will be ignored.
 	 * 
-	 * @param viewId the id of the view being displayed.
-	 * @param viewTitle the title of the view. may be null if not required.
+	 * @param viewId the id of the view being displayed. Must not be null.
+	 * @param viewTitle the title of the view. may be null.
 	 */
 	public static void trackView( String viewId, String viewTitle ) {
 		if( viewId == null )
@@ -314,7 +317,8 @@ public final class Tracker {
 			return;
 		singleton.trackViewImpl( viewId, viewTitle );
 	}
-	/** Call this whenever the user leaves your app. If the tracker has not been initialized,
+	/** Call this whenever the user leaves an activity. This will be used as a hint that the user might
+	 * have left the app. If the tracker has not been initialized,
 	 * this call will be ignored.
 	 */
 	public static void userLeftView( String viewId ) {
@@ -339,7 +343,9 @@ public final class Tracker {
 		singleton.userTypedImpl();
 	}
 	/**
-	 * Call this to set the app referrer. This should be called immediately before calling trackView.
+	 * Call this to set the app referrer. This is a referrer that is external to the app, such as
+	 * another app or website.
+	 * This should be called immediately before calling trackView.
 	 * If the tracker has not been initialized,
 	 * this call will be ignored.
 	 * 
@@ -348,6 +354,8 @@ public final class Tracker {
 	public static void setAppReferrer( String appReferrer ) {
 		if( singleton == null )
 			return;
+		//FIXME: should we do something to prevent issues if the user calls this function after the first ping?
+		// we could either ignore it, throw and exception, or force the app to reping with all parameters.
 		singleton.appReferrer = appReferrer;
 	}
 }

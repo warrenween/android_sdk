@@ -1,5 +1,6 @@
 /**
- * 
+ * Chartbeat Android API by Bjorn Roche.
+ * (c) Chartbeat 2014
  */
 package com.chartbeat.androidsdk;
 
@@ -30,7 +31,7 @@ public final class UserInfo {
 	/**
 	 * 
 	 */
-	public UserInfo(Context context) {
+	UserInfo(Context context) {
 		prefs = context.getSharedPreferences("com.chartbeat.androidsdk.user", Context.MODE_PRIVATE);
 		String userId = prefs.getString("userid", null);
 		
@@ -94,15 +95,15 @@ public final class UserInfo {
 		}
 	}
 	
-	public boolean isNewUser() {
+	boolean isNewUser() {
 		return newUser;
 	}
 	
-	public String getUserId() {
+	String getUserId() {
 		return userId;
 	}
 	
-	public void visited() {
+	void visited() {
 		GregorianCalendar gc = today();
 		if( visitedDates.add(gc) ) {
 			// the set is modified, so we must store it.
@@ -123,7 +124,7 @@ public final class UserInfo {
 		}
 	}
 	
-	public String getUserVisitFrequencyString() {
+	String getUserVisitFrequencyString() {
 		GregorianCalendar today = today();
 		GregorianCalendar cal[] = new GregorianCalendar[16];
 		int validDates = 0;
@@ -174,7 +175,7 @@ public final class UserInfo {
 		return gc;
 	}
 	
-	public static final char toHexDigit( int i ) {
+	static final char toHexDigit( int i ) {
 		if( i <= 9 && i >= 0 ) {
 			return (char) ('0' + i) ;
 		} else if( i > 9 && i < 16 ) {
@@ -184,7 +185,7 @@ public final class UserInfo {
 		}
 	}
 
-	public void markUserAsOld() {
+	void markUserAsOld() {
 		newUser = false;
 	}
 }
