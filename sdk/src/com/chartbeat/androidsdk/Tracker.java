@@ -6,6 +6,7 @@ package com.chartbeat.androidsdk;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -48,6 +49,45 @@ import android.webkit.WebView;
 public final class Tracker {
 	public static final boolean DEBUG = true;
 
+	private enum PingMode {
+		FIRST_PING,
+		STANDARD_PING,
+		FULL_PING,
+		REPING_AFTER_500;
+		
+		private static final HashSet<String> EVERY_TIME = new HashSet<String>();
+		static {
+			EVERY_TIME.add("h");
+			EVERY_TIME.add("d");
+			EVERY_TIME.add("p");
+			EVERY_TIME.add("t");
+			EVERY_TIME.add("u");
+			EVERY_TIME.add("g");
+			EVERY_TIME.add("v");
+			EVERY_TIME.add("c");
+			EVERY_TIME.add("j");
+			EVERY_TIME.add("E");
+			EVERY_TIME.add("R");
+			EVERY_TIME.add("W");
+			EVERY_TIME.add("I");
+			EVERY_TIME.add("_");
+		}
+		
+		boolean includeParameter( final String parameter ) {
+			switch( this ) {
+			case FIRST_PING:
+			case FULL_PING:
+				return true;
+			case STANDARD_PING:
+				return EVERY_TIME.contains(parameter);
+			case REPING_AFTER_500:
+				return !parameter.equals("D");
+			default:
+				throw new RuntimeException( "Invalid Ping Mode." );
+			}
+		}
+	} ;
+
 	private static final String USER_AGENT_SUFFIX = "/App";
 	private static final long SDK_MAJOR_VERSION = 0;
 	private static final long SDK_MINOR_VERSION = 0;
@@ -59,7 +99,7 @@ public final class Tracker {
 	private final String accountId, host, packageId, userAgent;
 	private String viewId, viewTitle, token;
 	private String appReferrer = "";
-	private boolean allParameters;
+	private PingMode pingMode;
 	private String internalReferrer = null;
 	private long timeCurrentViewStarted;
 	private final int screenWidth;
@@ -91,7 +131,7 @@ public final class Tracker {
 		this.pinger = new Pinger(userAgent);
 		this.engagementTracker = new EngagementTracker(); //FIXME: get engagement window from the server and set it.
 		this.context = context;
-		this.allParameters = true;
+		this.pingMode = PingMode.FIRST_PING;
 		
 		if( DEBUG )
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host );
@@ -144,6 +184,7 @@ public final class Tracker {
 		if( DEBUG )
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: USER LEFT" );
 	}
+
 	void ping() {
 		//if( viewId == null )
 		//	return;
@@ -154,32 +195,30 @@ public final class Tracker {
 		long now = System.currentTimeMillis();
 
 		ArrayList<Pinger.KeyValuePair> parameters = new ArrayList<Pinger.KeyValuePair>(30);
-		parameters.add(new Pinger.KeyValuePair("h", "Host", host));
-		parameters.add(new Pinger.KeyValuePair("d", "Real Domain", packageId));
-		parameters.add(new Pinger.KeyValuePair("p", "Path", viewId));
-		parameters.add(new Pinger.KeyValuePair("t", "Token", token));
-		parameters.add(new Pinger.KeyValuePair("u", "User Id", userInfo.getUserId()));
-		parameters.add(new Pinger.KeyValuePair("g", "Account Id", accountId));
+		addParameterIfRequired( parameters, "h", "Host", host );
+		addParameterIfRequired( parameters, "d", "Real Domain", packageId );
+		addParameterIfRequired( parameters, "p", "Path", viewId );
+		addParameterIfRequired( parameters, "t", "Token", token );
+		addParameterIfRequired( parameters, "u", "User Id", userInfo.getUserId() );
+		addParameterIfRequired( parameters, "g", "Account Id", accountId );
 		
 		if( appReferrer != null )
-			parameters.add(new Pinger.KeyValuePair("r", "External Referrer", appReferrer));
+			addParameterIfRequired( parameters, "r", "External Referrer", appReferrer );
 		else if( internalReferrer != null )
-			parameters.add(new Pinger.KeyValuePair("v", "Internal Referrer", internalReferrer));
+			addParameterIfRequired( parameters, "v", "Internal Referrer", internalReferrer );
 		
 		//FIXME: g0 - sections
 		//FIXME: g1 - authors
 		//FIXME: g2 - zones
 
-		if( viewTitle != null && allParameters )
-			parameters.add(new Pinger.KeyValuePair("i", "View Title", viewTitle));
+		if( viewTitle != null )
+			addParameterIfRequired( parameters, "i", "View Title", viewTitle);
 		
-		if( allParameters )
-			parameters.add(new Pinger.KeyValuePair("n", "New User?", userInfo.isNewUser() ? "1" : "0"));
+		addParameterIfRequired( parameters, "n", "New User?", userInfo.isNewUser() ? "1" : "0");
 		
-		if( allParameters )
-			parameters.add(new Pinger.KeyValuePair("f", "Visit Frequency", userInfo.getUserVisitFrequencyString()));
+		addParameterIfRequired( parameters, "f", "Visit Frequency", userInfo.getUserVisitFrequencyString());
 		
-		if( !isInBackground || allParameters ) {
+		if( !isInBackground ) {
 			long timeInCurrentView = now - this.timeCurrentViewStarted;
 			if( timeInCurrentView < 0 ) //could happen if time is adjusting
 				timeInCurrentView = 0;
@@ -187,24 +226,21 @@ public final class Tracker {
 			double cd = timeInCurrentView / 1000.0; //seconds
 			cd = cd/60; //minutes
 			// print with one decimal precision:
-			parameters.add(new Pinger.KeyValuePair("c", "Time on View (m)", String.format( Locale.US, "%.1f", cd )));
+			addParameterIfRequired( parameters, "c", "Time on View (m)", String.format( Locale.US, "%.1f", cd ));
 		}
-		if( allParameters ) {
-			parameters.add( new Pinger.KeyValuePair( "W", "Device Width", String.valueOf(screenWidth) ) );
-			parameters.add( new Pinger.KeyValuePair( "w", "Window Height", String.valueOf(windowHeight) ) );
-		}
+		addParameterIfRequired( parameters, "W", "Device Width", String.valueOf(screenWidth) );
+		addParameterIfRequired( parameters, "w", "Window Height", String.valueOf(windowHeight) );
 		
 		//although j is listed as "optional", when I only included it at the start and when it changed,
 		// I got frequent, spurious 500's.
 		//int decay = timer.expectedNextInterval(isInBackground);
 		//if( decay != timer.getCurrentInterval() || allParameters )
-			parameters.add(new Pinger.KeyValuePair("j", "Decay", String.valueOf( timer.expectedNextInterval(isInBackground)*2) ));
+		addParameterIfRequired( parameters, "j", "Decay", String.valueOf( timer.expectedNextInterval(isInBackground)*2) );
 		
 		// FIXME: D
 		// FIXME: b
 		// FIXME: lg/lt
-		if( allParameters )
-			parameters.add(new Pinger.KeyValuePair("V", "SDK Version", SDK_VERSION));
+		addParameterIfRequired( parameters, "V", "SDK Version", SDK_VERSION);
 		
 		// engagement keys
 		EngagementData ed = engagementTracker.ping();
@@ -242,20 +278,23 @@ public final class Tracker {
 			//System.out.println( sequentialErrors );
 			if( sequentialErrors == 3 ) {
 				sequentialErrors = 0;
-				allParameters = true;
+				pingMode = PingMode.FULL_PING;
 				timer.suspend();
 			}
 			timer.isInBackground( isInBackground );
 			if( code == 500 || exception || code == 400 ) {
-				//FIXME: on 500 don't resend D
-				allParameters = true;
+				if( code == 500 ) {
+					pingMode = PingMode.REPING_AFTER_500;
+				} else {
+					pingMode = PingMode.FULL_PING;
+				}
 				engagementTracker.lastPingFailed(ed);
 				if( code == 400 || code == 500 ) {
 					timer.retryImmediately();
 				}
 			}
 			if( code == 200 ) {
-				allParameters = false;
+				pingMode = PingMode.STANDARD_PING;
 				internalReferrer = null;
 				appReferrer = null;
 			}
@@ -263,11 +302,22 @@ public final class Tracker {
 			if( DEBUG ) {
 				Log.d(TAG, "Not pinging: no network connection detected." );
 			}
-			allParameters = true;
+			pingMode = PingMode.FULL_PING;
 			engagementTracker.lastPingFailed(ed);
 		}
 	}
+	private void addParameterIfRequired( ArrayList<Pinger.KeyValuePair> parameters, String key, String note, String value ) {
+		addParameterIfRequired( parameters, pingMode, key, note, value );
+	}
+	private void addParameterIfRequired( ArrayList<Pinger.KeyValuePair> parameters, PingMode pingMode, String key, String note, String value ) {
+		if( pingMode.includeParameter(key) ) {
+			parameters.add(new Pinger.KeyValuePair(key, note, value));
+		}
+	}
 	
+	
+	/** ----------- Public static functions -------------- */
+
 	/** initializes the tracker. If the tracker has already been initialized, this call will be ignored.
 	 * 
 	 * @param accountId your account id on the Chartbeat system.
