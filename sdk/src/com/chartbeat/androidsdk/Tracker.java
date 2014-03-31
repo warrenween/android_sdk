@@ -156,6 +156,7 @@ public final class Tracker {
 		this.token = UUID.randomUUID().toString();
 		this.timeCurrentViewStarted = System.currentTimeMillis();
 		ForegroundTracker.activityStarted();
+		timer.setInBackground( false );
 		engagementTracker.userEnteredView();
 		userInfo.visited();
 		if( this.internalReferrer != null )
@@ -180,6 +181,7 @@ public final class Tracker {
 	}
 	private void userLeftViewImpl(String viewId) {
 		ForegroundTracker.activityEnded();
+		timer.setInBackground( true );
 		engagementTracker.userLeftView();
 		if( DEBUG )
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: USER LEFT" );
@@ -228,7 +230,7 @@ public final class Tracker {
 			// print with one decimal precision:
 			addParameterIfRequired( parameters, "c", "Time on View (m)", String.format( Locale.US, "%.1f", cd ));
 		}
-		addParameterIfRequired( parameters, "W", "Device Width", String.valueOf(screenWidth) );
+		//addParameterIfRequired( parameters, "W", "Device Width", String.valueOf(screenWidth) ); FIXME: device width is probably something else. W is "Writing"
 		addParameterIfRequired( parameters, "w", "Window Height", String.valueOf(windowHeight) );
 		
 		//although j is listed as "optional", when I only included it at the start and when it changed,
@@ -281,7 +283,7 @@ public final class Tracker {
 				pingMode = PingMode.FULL_PING;
 				timer.suspend();
 			}
-			timer.isInBackground( isInBackground );
+			timer.setInBackground( isInBackground );
 			if( code == 500 || exception || code == 400 ) {
 				if( code == 500 ) {
 					pingMode = PingMode.REPING_AFTER_500;

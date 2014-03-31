@@ -16,10 +16,11 @@ public final class Timer {
 	private final String TAG = "Chartbeat Timer";
 	private final long MILLISECONDS = 1000;
 	private final long ONE_MINUTE = 1 * 60 * 1000;
-	private final long SUSPENTION_TIME = ONE_MINUTE; //FIXME: should be ten!
+	private final long SUSPENTION_TIME = 10 * ONE_MINUTE; //FIXME: should be ten!
 	private java.util.Timer timer;
 	private long defaultInterval = 15; // in seconds
 	private long backgroundInterval = 60;
+	private long backgroundCount = 0;
 	private long currentInterval = defaultInterval;
 	private boolean inBackground;
 	private long suspendTime = 0;
@@ -85,7 +86,15 @@ public final class Timer {
 		public void run() {
 			try {
 				if( !isSuspended ) {
-					tracker.ping();
+					if( !inBackground || backgroundCount == 0 || retryImmediately ) {
+						retryImmediately = false;
+						tracker.ping();
+					}
+					if( inBackground ) {
+						++backgroundCount;
+					}
+					if( backgroundCount >= backgroundInterval/currentInterval )
+						backgroundCount = 0;
 				}
 			} catch (Exception e) {
 				//we catch all exceptions to ensure that we can reschedule the next run.
@@ -93,9 +102,8 @@ public final class Timer {
 				e.printStackTrace();
 			}
 			// schedule next
-			long interval = inBackground ? backgroundInterval : currentInterval ;
+			long interval = currentInterval ;
 			if( retryImmediately ) {
-				retryImmediately = false;
 				interval = 0;
 			}
 			if( timer != null ) //timer might be null if we are suspended
@@ -103,7 +111,9 @@ public final class Timer {
 		}
 	}
 
-	void isInBackground(boolean inBackground) {
+	void setInBackground(boolean inBackground) {
+		if( inBackground && !this.inBackground )
+			backgroundCount = 0;
 		this.inBackground = inBackground;
 	}
 }
