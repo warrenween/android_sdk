@@ -2,8 +2,11 @@ package com.example.chartbeatsdktest;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+
 import com.chartbeat.androidsdk.Tracker;
 
 /**
@@ -50,5 +53,16 @@ public class ChartbeatMainActivity extends Activity {
 	public void onPause() {
 		super.onPause();
 		Tracker.userLeftView(VIEW_ID);
+	}
+	
+	public void simulateTyping(View view) {
+		Log.d(TAG, "Typing");
+		Tracker.userTyped();
+	}
+	
+	public void switchViews(View view) {
+		Log.d(TAG, "Switching Views");
+		Intent intent = new Intent(this,AltActivity.class);
+		startActivity(intent);
 	}
 }

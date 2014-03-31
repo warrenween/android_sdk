@@ -86,7 +86,51 @@ public final class Tracker {
 				throw new RuntimeException( "Invalid Ping Mode." );
 			}
 		}
+		PingMode next() {
+			switch( this ) {
+			case FIRST_PING:
+			case FULL_PING:
+			case STANDARD_PING:
+				return STANDARD_PING;
+			case REPING_AFTER_500:
+				return STANDARD_PING;
+			default:
+				throw new RuntimeException( "Invalid Ping Mode." );
+			}
+		}
 	} ;
+	
+	private class PingParams {
+		HashSet<String> oneTimeKeys = new HashSet<String>();
+		PingMode pingMode;
+		
+		PingParams() {
+			pingMode = PingMode.FIRST_PING;
+		}
+		void addOneTimeParameter( String k ) {
+			oneTimeKeys.add(k);
+		}
+		boolean includeParameter( final String parameter ) {
+			return oneTimeKeys.contains(parameter) || pingMode.includeParameter(parameter);
+		}
+		void pingComplete(int code) {
+			if( code == 500 ) {
+				pingMode = PingMode.REPING_AFTER_500;
+			} else if( code == 400 ) {
+				pingMode = PingMode.FULL_PING;
+			} else {
+				pingMode = pingMode.next();
+				oneTimeKeys.clear();
+			}
+		}
+		void pingError() {
+			pingMode = PingMode.FULL_PING;
+		}
+		void pingReset() {
+			oneTimeKeys.clear();
+			pingMode = PingMode.FULL_PING;
+		}
+	}
 
 	private static final String USER_AGENT_SUFFIX = "/App";
 	private static final long SDK_MAJOR_VERSION = 0;
@@ -99,7 +143,7 @@ public final class Tracker {
 	private final String accountId, host, packageId, userAgent;
 	private String viewId, viewTitle, token;
 	private String appReferrer = "";
-	private PingMode pingMode;
+	private PingParams pingParams;
 	private String internalReferrer = null;
 	private long timeCurrentViewStarted;
 	private final int screenWidth;
@@ -109,6 +153,8 @@ public final class Tracker {
 	private final Pinger pinger;
 	private final EngagementTracker engagementTracker;
 	private final Context context;
+	private long lastSuccessfulPingTime = 0;
+	private long lastDecayTime = 0;
 	private int sequentialErrors; //counts 503 errors.
 	
 	private Tracker( String accountId, String host, Context context ) {
@@ -131,7 +177,7 @@ public final class Tracker {
 		this.pinger = new Pinger(userAgent);
 		this.engagementTracker = new EngagementTracker(); //FIXME: get engagement window from the server and set it.
 		this.context = context;
-		this.pingMode = PingMode.FIRST_PING;
+		this.pingParams = new PingParams();
 		
 		if( DEBUG )
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host );
@@ -161,6 +207,8 @@ public final class Tracker {
 		userInfo.visited();
 		if( this.internalReferrer != null )
 			userInfo.markUserAsOld();
+		pingParams.addOneTimeParameter( "i" );
+		pingParams.addOneTimeParameter( "D" );
 		timer.start();
 		timer.unsuspend();
 		if( DEBUG )
@@ -239,7 +287,10 @@ public final class Tracker {
 		//if( decay != timer.getCurrentInterval() || allParameters )
 		addParameterIfRequired( parameters, "j", "Decay", String.valueOf( timer.expectedNextInterval(isInBackground)*2) );
 		
-		// FIXME: D
+		// only include this if the j, decay time, has not passed since the last ping.
+		if( internalReferrer != null && lastSuccessfulPingTime + lastDecayTime > System.currentTimeMillis() )
+			addParameterIfRequired( parameters, "D", "Force Decay", internalReferrer );
+		lastDecayTime = timer.expectedNextInterval(isInBackground) * 2 * 1000;
 		// FIXME: b
 		// FIXME: lg/lt
 		addParameterIfRequired( parameters, "V", "SDK Version", SDK_VERSION);
@@ -266,9 +317,11 @@ public final class Tracker {
 			int code = 0;
 			try {
 				code = pinger.ping(parameters);
+				pingParams.pingComplete(code);
 				if( DEBUG )
 					Log.d(TAG, "ping returned with: " + code );
 			} catch (IOException e) {
+				pingParams.pingError();
 				exception = true;
 				Log.w(TAG, "Error pining chartbeat: " + e );
 			}
@@ -280,39 +333,34 @@ public final class Tracker {
 			//System.out.println( sequentialErrors );
 			if( sequentialErrors == 3 ) {
 				sequentialErrors = 0;
-				pingMode = PingMode.FULL_PING;
+				pingParams.pingError();
 				timer.suspend();
 			}
 			timer.setInBackground( isInBackground );
 			if( code == 500 || exception || code == 400 ) {
-				if( code == 500 ) {
-					pingMode = PingMode.REPING_AFTER_500;
-				} else {
-					pingMode = PingMode.FULL_PING;
-				}
 				engagementTracker.lastPingFailed(ed);
 				if( code == 400 || code == 500 ) {
 					timer.retryImmediately();
 				}
 			}
 			if( code == 200 ) {
-				pingMode = PingMode.STANDARD_PING;
 				internalReferrer = null;
 				appReferrer = null;
+				lastSuccessfulPingTime = System.currentTimeMillis();
 			}
 		} else {
 			if( DEBUG ) {
 				Log.d(TAG, "Not pinging: no network connection detected." );
 			}
-			pingMode = PingMode.FULL_PING;
+			pingParams.pingReset();
 			engagementTracker.lastPingFailed(ed);
 		}
 	}
 	private void addParameterIfRequired( ArrayList<Pinger.KeyValuePair> parameters, String key, String note, String value ) {
-		addParameterIfRequired( parameters, pingMode, key, note, value );
+		addParameterIfRequired( parameters, pingParams, key, note, value );
 	}
-	private void addParameterIfRequired( ArrayList<Pinger.KeyValuePair> parameters, PingMode pingMode, String key, String note, String value ) {
-		if( pingMode.includeParameter(key) ) {
+	private void addParameterIfRequired( ArrayList<Pinger.KeyValuePair> parameters, PingParams pingInfo, String key, String note, String value ) {
+		if( pingInfo.includeParameter(key) ) {
 			parameters.add(new Pinger.KeyValuePair(key, note, value));
 		}
 	}
