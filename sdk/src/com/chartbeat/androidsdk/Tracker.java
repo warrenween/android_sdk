@@ -6,6 +6,7 @@ package com.chartbeat.androidsdk;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.UUID;
@@ -15,6 +16,8 @@ import com.chartbeat.androidsdk.EngagementTracker.EngagementData;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Point;
+import android.location.Location;
+import android.location.LocationManager;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
@@ -48,6 +51,7 @@ import android.webkit.WebView;
  */
 public final class Tracker {
 	public static final boolean DEBUG = true;
+	private static final long ONE_HOUR = 1 * 60 * 60 * 1000 ;
 
 	private enum PingMode {
 		FIRST_PING,
@@ -157,6 +161,10 @@ public final class Tracker {
 	private long lastDecayTime = 0;
 	private int sequentialErrors; //counts 503 errors.
 	
+	private String sections, authors, zones;
+	private Float pageLoadTime;
+	private Location location;
+	
 	private Tracker( String accountId, String host, Context context ) {
 		this.accountId = accountId;
 		this.packageId = context.getPackageName();
@@ -209,10 +217,75 @@ public final class Tracker {
 			userInfo.markUserAsOld();
 		pingParams.addOneTimeParameter( "i" );
 		pingParams.addOneTimeParameter( "D" );
+		resetViewSpecificData();
+		updateLocation();
 		timer.start();
 		timer.unsuspend();
 		if( DEBUG )
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: TRACK VIEW :: " + this.viewId );
+	}
+	
+	private void resetViewSpecificData() {
+		sections = null;
+		authors = null;
+		zones = null;
+		pageLoadTime = null;
+	}
+	
+	private void updateLocation() {
+		LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		
+		Location lastKnownNetworkLocation = null, lastKnownGPSLocation = null;
+		try {
+			lastKnownNetworkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+		} catch( SecurityException se ) {
+			Log.d(TAG, "Network location unavailable. Try requesting ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION");
+		}
+		try {
+			lastKnownGPSLocation     = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		} catch( SecurityException se ) {
+			Log.d(TAG, "GPS location unavailable. Try requesting ACCESS_FINE_LOCATION" );
+		}
+		
+//		Log.w(TAG, "GPS: " + lastKnownGPSLocation );
+//		Log.w(TAG, "NETWORK: " + lastKnownNetworkLocation );
+		
+		// ignore any location info that's over an hour old.
+		long now = System.currentTimeMillis();
+		if( lastKnownNetworkLocation != null && lastKnownNetworkLocation.getTime() < now - ONE_HOUR ) {
+			lastKnownNetworkLocation = null; //too old ignore it.
+		}
+		if( lastKnownGPSLocation != null && lastKnownGPSLocation.getTime() < now - ONE_HOUR ) {
+			lastKnownGPSLocation = null; //too old ignore it.
+		}
+		
+//		Log.w(TAG, "GPS: " + lastKnownGPSLocation );
+//		Log.w(TAG, "NETWORK: " + lastKnownNetworkLocation );
+		
+		// now, try to pick the best, which is either the only, or the one that
+		// reports the best accuracy:
+		Location bestLocation = null;
+		if( lastKnownNetworkLocation == null && lastKnownGPSLocation == null ) {
+			bestLocation = null;
+		} else if( lastKnownNetworkLocation == null ) {
+			bestLocation = lastKnownGPSLocation;
+		} else if( lastKnownGPSLocation == null ) {
+			bestLocation = lastKnownNetworkLocation;
+		} else {
+			// both locations are non-null
+			if( lastKnownGPSLocation.getAccuracy() < lastKnownNetworkLocation.getAccuracy() ) {
+				bestLocation = lastKnownGPSLocation;
+			} else {
+				bestLocation = lastKnownNetworkLocation;
+			}
+		}
+		
+		// at this point, bestLocation is either null, or has reasonable data:
+		location = bestLocation;
+		
+//		Log.w(TAG, "BEST: " + location );
+		pingParams.addOneTimeParameter("lg");
+		pingParams.addOneTimeParameter("lt");
 	}
 	
 	private void userInteractedImpl() {
@@ -257,9 +330,12 @@ public final class Tracker {
 		else if( internalReferrer != null )
 			addParameterIfRequired( parameters, "v", "Internal Referrer", internalReferrer );
 		
-		//FIXME: g0 - sections
-		//FIXME: g1 - authors
-		//FIXME: g2 - zones
+		if( sections != null )
+			addParameterIfRequired( parameters, "g0", "Sections", sections);
+		if( authors != null )
+			addParameterIfRequired( parameters, "g1", "Authors", authors);
+		if( zones != null )
+			addParameterIfRequired( parameters, "g2", "Zones", zones);
 
 		if( viewTitle != null )
 			addParameterIfRequired( parameters, "i", "View Title", viewTitle);
@@ -278,7 +354,7 @@ public final class Tracker {
 			// print with one decimal precision:
 			addParameterIfRequired( parameters, "c", "Time on View (m)", String.format( Locale.US, "%.1f", cd ));
 		}
-		//addParameterIfRequired( parameters, "W", "Device Width", String.valueOf(screenWidth) ); FIXME: device width is probably something else. W is "Writing"
+		addParameterIfRequired( parameters, "S", "Screen Width", String.valueOf(screenWidth) );
 		addParameterIfRequired( parameters, "w", "Window Height", String.valueOf(windowHeight) );
 		
 		//although j is listed as "optional", when I only included it at the start and when it changed,
@@ -291,8 +367,13 @@ public final class Tracker {
 		if( internalReferrer != null && lastSuccessfulPingTime + lastDecayTime > System.currentTimeMillis() )
 			addParameterIfRequired( parameters, "D", "Force Decay", internalReferrer );
 		lastDecayTime = timer.expectedNextInterval(isInBackground) * 2 * 1000;
-		// FIXME: b
-		// FIXME: lg/lt
+		
+		if( pageLoadTime != null )
+			addParameterIfRequired( parameters, "b", "Page Load Time", String.valueOf(pageLoadTime.floatValue()) );
+		if( location != null ) {
+			addParameterIfRequired( parameters, "lg", "Longitude", String.valueOf(location.getLongitude()) );
+			addParameterIfRequired( parameters, "lt", "Latitude",  String.valueOf(location.getLatitude()) );
+		}
 		addParameterIfRequired( parameters, "V", "SDK Version", SDK_VERSION);
 		
 		// engagement keys
@@ -460,5 +541,105 @@ public final class Tracker {
 		//FIXME: should we do something to prevent issues if the user calls this function after the first ping?
 		// we could either ignore it, throw and exception, or force the app to reping with all parameters.
 		singleton.appReferrer = appReferrer;
+	}
+	
+	/**
+	 * Call this method to set the zone(s) for the current view. This data will be purged when changing the view,
+	 * so be sure not to call this before calling trackView().
+	 * @param zones a comma-delimited list of zones.
+	 */
+	public static void setZones( String zones ) {
+		if( singleton == null )
+			return;
+		singleton.zones = zones;
+		singleton.pingParams.addOneTimeParameter("g2");
+	}
+	/**
+	 * Call this method to set the zone(s) for the current view. Note that any commas found in the zone strings will be
+	 * removed because that is the delimiter.
+	 * 
+	 * @param zones
+	 */
+	public static void setZones( Collection<String> zones ) {
+		if( singleton == null )
+			return;
+		singleton.zones = collectionToCommaString(zones);
+		singleton.pingParams.addOneTimeParameter("g2");
+	}
+	
+	/**
+	 * Call this method to set the author(s) for the current view. This data will be purged when changing the view,
+	 * so be sure not to call this before calling trackView().
+	 * @param zones a comma-delimited list of zones.
+	 */
+	public static void setAuthors( String authors ) {
+		if( singleton == null )
+			return;
+		singleton.authors = authors;
+		singleton.pingParams.addOneTimeParameter("g1");
+	}
+	/**
+	 * Call this method to set the authors(s) for the current view. Note that any commas found in the author strings will be
+	 * removed because that is the delimiter.
+	 * 
+	 * @param authors
+	 */
+	public static void setAuthors( Collection<String> authors ) {
+		if( singleton == null )
+			return;
+		singleton.authors = collectionToCommaString(authors);
+		singleton.pingParams.addOneTimeParameter("g1");
+	}
+	
+	/**
+	 * Call this method to set the section(s) for the current view. This data will be purged when changing the view,
+	 * so be sure not to call this before calling trackView().
+	 * @param sections a comma-delimited list of sections.
+	 */
+	public static void setSections( String sections ) {
+		if( singleton == null )
+			return;
+		singleton.sections = sections;
+		singleton.pingParams.addOneTimeParameter("g0");
+	}
+	/**
+	 * Call this method to set the sections(s) for the current view. Note that any commas found in the section strings will be
+	 * removed because that is the delimiter.
+	 * 
+	 * @param authors
+	 */
+	public static void setSections( Collection<String> sections ) {
+		if( singleton == null )
+			return;
+		singleton.sections = collectionToCommaString(sections);
+		singleton.pingParams.addOneTimeParameter("g0");
+	}
+	/** call this to set the load time of the current page/view. This data will be purged when changing the view,
+	 * so be sure not to call this before calling trackView().
+	 * */
+	public static void setViewLoadTime( float pageLoadTime ) {
+		if( singleton == null )
+			return;
+		singleton.pageLoadTime = pageLoadTime;
+		singleton.pingParams.addOneTimeParameter("b");
+	}
+	
+	
+	
+	private static String collectionToCommaString( Collection<String> col ) {
+		if( col == null || col.size() == 0 ) {
+			return null;
+		}
+		// there shouldn't usually be too many elements in our collection,
+		// so not using a string builder is probably appropriate here.
+		String ret = "";
+		int i = 0;
+		for( String s : col ) {
+			ret += s.replaceAll(",","");
+			++i;
+			if( i != col.size() )
+				ret += ",";
+		}
+		return ret;
 	}
 }

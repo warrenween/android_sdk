@@ -1,11 +1,17 @@
 package com.example.chartbeatsdktest;
 
+import java.util.HashSet;
+
 import com.chartbeat.androidsdk.Tracker;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.app.Activity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.RadioButton;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
 import android.os.Build;
@@ -13,6 +19,7 @@ import android.os.Build;
 public class AltActivity extends Activity {
 	private static final String VIEW_ID = "ANOTHER_VIEW_ID";
 	private static final String VIEW_TITLE = "Different Test View";
+	private static final String TAG = "Chartbeat Alt Activity";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -55,21 +62,87 @@ public class AltActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	
+
+	// ------------- Respond to user input
+
+	public void onSectionClicked(View view) {
+		boolean checked = ((RadioButton) view).isChecked();
+
+		// Check which radio button was clicked
+		if (checked) {
+			switch (view.getId()) {
+			case R.id.sectiona:
+				Log.d(TAG, "Section A");
+				Tracker.setSections( "Section A" );
+				break;
+			case R.id.sectionb:
+				Log.d(TAG, "Section B");
+				Tracker.setSections( "Section B" );
+				break;
+			}
+		}
+	}
+
+	public void onAuthorClicked(View view) {
+		boolean checked = ((RadioButton) view).isChecked();
+
+		// Check which radio button was clicked
+		if (checked) {
+			switch (view.getId()) {
+			case R.id.author1:
+				Log.d(TAG, "Author 1");
+				Tracker.setAuthors( "Author A" );
+				break;
+			case R.id.author2:
+				Log.d(TAG, "Author 2");
+				HashSet<String> authors = new HashSet<String>();
+				authors.add("Author B");
+				authors.add("Author C");
+				Tracker.setAuthors( authors );
+				break;
+			}
+		}
+	}
+
+	public void onZoneClicked(View view) {
+		boolean checked = ((RadioButton) view).isChecked();
+
+		// Check which radio button was clicked
+		if (checked) {
+			switch (view.getId()) {
+			case R.id.zonea:
+				Log.d(TAG, "Zone A");
+				Tracker.setZones( "Zone A" );
+				break;
+			case R.id.zoneb:
+				Log.d(TAG, "Zone B");
+				Tracker.setZones( "Zone B" );
+				break;
+			}
+		}
+	}
+
 	// ------------- Chartbeat tracker implementation
-	
+
 	@Override
 	public void onUserInteraction() {
 		super.onUserInteraction();
 		Tracker.userInteracted();
 	}
-	
+
 	@Override
 	public void onResume() {
 		super.onResume();
 		Tracker.trackView(VIEW_ID, VIEW_TITLE);
+		//simulate view loading a half second later:
+		new Handler().postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				Tracker.setViewLoadTime(.5f);
+			}
+		}, 500 );
 	}
-	
+
 	@Override
 	public void onPause() {
 		super.onPause();

@@ -9,8 +9,82 @@
     tools:context=".AltActivity" >
 
     <TextView
+        android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
+        android:text="Section:" />
+
+    <RadioGroup
+        android:id="@+id/radioGroup1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView1"
+        android:layout_below="@+id/textView1"
+        android:orientation="vertical" >
+
+        <RadioButton
+            android:id="@+id/sectiona"
+            android:text="Section A"
+            android:onClick="onSectionClicked"/>
+
+        <RadioButton
+            android:id="@+id/sectionb"
+            android:text="Section B"
+            android:onClick="onSectionClicked"/>
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/radioGroup1"
+        android:layout_below="@+id/radioGroup1"
+        android:text="Zone:" />
+
+    <RadioGroup
+        android:id="@+id/radioGroup2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView2"
+        android:layout_below="@+id/textView2"
+        android:orientation="vertical" >
+
+        <RadioButton
+            android:id="@+id/zonea"
+            android:onClick="onZoneClicked"
+            android:text="Zone A" />
+
+        <RadioButton
+            android:id="@+id/zoneb"
+            android:onClick="onZoneClicked"
+            android:text="Zone B" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/radioGroup2"
+        android:layout_below="@+id/radioGroup2"
+        android:text="Author:" />
+
+    <RadioGroup
+        android:id="@+id/radioGroup3"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView3"
+        android:layout_below="@+id/textView3"
+        android:orientation="vertical" >
+
+        <RadioButton
+            android:id="@+id/author1"
+            android:onClick="onAuthorClicked"
+            android:text="Author A" />
+
+        <RadioButton
+            android:id="@+id/author2"
+            android:onClick="onAuthorClicked"
+            android:text="Author B, Author C" />
+    </RadioGroup>
 
 </RelativeLayout>
