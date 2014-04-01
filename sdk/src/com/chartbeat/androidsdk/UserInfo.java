@@ -79,7 +79,7 @@ public final class UserInfo {
 		visitedDates = new TreeSet<GregorianCalendar>();
 		String vd = prefs.getString("visits-" + userId, null);
 		GregorianCalendar sixteenDaysAgo = today();
-		sixteenDaysAgo.roll(GregorianCalendar.DATE, -16);
+		sixteenDaysAgo.add(GregorianCalendar.DATE, -16);
 		if( vd != null ) {
 			Log.d(TAG, "Retrieving user visited dates: " + vd );
 			for( String dateString : vd.split(",") ) {
@@ -106,6 +106,10 @@ public final class UserInfo {
 	void visited() {
 		GregorianCalendar gc = today();
 		if( visitedDates.add(gc) ) {
+//			GregorianCalendar yesterday = (GregorianCalendar) gc.clone();
+//			yesterday.add(GregorianCalendar.DATE, -1);
+//			yesterday.add(GregorianCalendar.DATE, -30);
+//			visitedDates.add( yesterday );
 			// the set is modified, so we must store it.
 			String s = "";
 			boolean first = true;
