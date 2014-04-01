@@ -19,7 +19,8 @@ How to Use the SDK
 
 **Requirements:** To use the SDK, you must have a Chartbeat AccountID, and
 your application must have the android.permission.INTERNET and
-android.permission.ACCESS_NETWORK_STATE permissions. The SDK requires API Level 8 (Android 2.2).
+android.permission.ACCESS_NETWORK_STATE permissions. The SDK requires API
+Level 8 (Android 2.2).
 
 **Overview:**
 Once you include the jar in your project in the usual manner, all functionality
@@ -57,3 +58,14 @@ There are also a variety of other methods for seting optional information, such 
 author and section; however the above functions are required. For a complete list, as
 well as detailed usage information about the above functions,
 see the Javadocs for com.chartbeat.androidsdk.Tracker.
+
+
+**GeoLocation:** If you wish to have the API automatically use
+GEOLocation information, simply include the android.permission.ACCESS_COARSE_LOCATION and or the android.permission.ACCESS_FINE_LOCATION permissions.
+With these available, chartbeat will automatically access cached location
+data. Because cached data is used, the library will never turn the GPU hardware
+on or access this hardware directly. If you require fine-grained and up-to-date
+information, simply turn the GPS on yourself and turn it off when you have
+zeroed in on the current location. The Location information is updated whenever
+the View is updated.
+
