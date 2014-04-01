@@ -6,6 +6,15 @@ package com.chartbeat.androidsdk;
 
 import java.util.TimerTask;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
+
+import android.net.Uri;
+import android.util.Log;
+
 
 /**
  * Tracks user engagement and calculates the necessary metrics.
@@ -13,13 +22,13 @@ import java.util.TimerTask;
  * @author bjorn
  */
 final class EngagementTracker extends TimerTask {
-	private int engagementWindow = 5;
+	private int engagementWindow = 5; //default to 5 until we get info from the server otherwise.
 	private boolean engaged, typed;
 	private long totalEngagement;
 	private final int INITIAL_ENGAGEMENT = 5; //user is always considered engaged for the first 5 seconds.
 	private long lastEngaged;
 	private final long startTime;
-	private java.util.Timer timer = new java.util.Timer();
+	private final java.util.Timer timer = new java.util.Timer();
 
 	EngagementTracker() {
 		engaged = false;
@@ -29,6 +38,8 @@ final class EngagementTracker extends TimerTask {
 		startTime = System.currentTimeMillis();
 		
 		timer.schedule( this, 0, 1000 );
+		
+		timer.schedule( new EngagementWindowFetcher(), 0 );
 	}
 	
 	synchronized void setEngagementWindow( int window ) {
@@ -83,6 +94,42 @@ final class EngagementTracker extends TimerTask {
 			this.reading = engaged && (!typed);
 			this.idle = !engaged;
 			this.totalEngagement = totalEngagement;
+		}
+	}
+	class EngagementWindowFetcher extends TimerTask {
+		public static final String TAG = "Engagement data Fetcher";
+		public static final String SCHEME = "http";
+		public static final String AUTHORITY = "static.chartbeat.com";
+		public static final String PATH = "data/config.json";
+
+		EngagementWindowFetcher() {
+		}
+		@Override
+		public void run() {
+			DefaultHttpClient httpClient = new DefaultHttpClient();
+
+			// setup the call
+			Uri.Builder builder = new Uri.Builder().scheme(SCHEME).authority(AUTHORITY).path(PATH);
+
+			HttpGet get = new HttpGet( builder.build().toString() );
+			get.setHeader("Content-type", "application/json");
+			if( Tracker.DEBUG )
+				Log.d(TAG,"Fetching engagement window from: " + get.toString() );
+			
+			// execute the call
+			String result = null;
+			try {
+			    HttpResponse response = httpClient.execute(get);
+			    result = EntityUtils.toString(response.getEntity());
+				JSONObject jObject = new JSONObject(result);
+				int ew = jObject.getInt("engagement_window") ;
+				if( Tracker.DEBUG )
+					Log.d(TAG,"Got engagement window: " + ew );
+				setEngagementWindow( ew );
+			} catch (Exception e) {
+				//Something went wrong. Try again in 10 min.
+			    timer.schedule(new EngagementWindowFetcher(), 10*60*1000);
+			}
 		}
 	}
 }

@@ -183,7 +183,7 @@ public final class Tracker {
 		//This takes about 100ms on older android phones
 		this.userAgent = (new WebView(context)).getSettings().getUserAgentString() + USER_AGENT_SUFFIX;
 		this.pinger = new Pinger(userAgent);
-		this.engagementTracker = new EngagementTracker(); //FIXME: get engagement window from the server and set it.
+		this.engagementTracker = new EngagementTracker();
 		this.context = context;
 		this.pingParams = new PingParams();
 		
