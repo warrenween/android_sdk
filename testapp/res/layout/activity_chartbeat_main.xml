@@ -27,35 +27,26 @@
         android:text="Simulate typing"
         android:onClick="simulateTyping" />
 
-    <ScrollView
-        android:id="@+id/scrollView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/button2"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true" >
+     <view
+         class="com.example.chartbeatsdktest.MainScrollView"
+         android:id="@+id/scrollView1"
+         android:layout_width="wrap_content"
+         android:layout_height="100dp"
+         android:layout_alignParentTop="true"
+         android:layout_centerHorizontal="true"
+         android:layout_marginTop="16dp" >
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical" >
+         <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:orientation="vertical" >
 
-            <TextView
-                android:id="@+id/textView1"
-                android:layout_width="match_parent"
-                android:layout_height="480dp"
-                android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur rutrum, purus non ullamcorper condimentum, velit enim fringilla eros, id suscipit libero justo et velit. Aenean sed dolor nisl. Etiam fermentum elit in nisl gravida volutpat. Cras ac rhoncus enim. Sed dignissim erat ut purus dignissim dictum. Donec massa risus, luctus feugiat malesuada at, hendrerit quis purus. Cras at interdum sem, vitae posuere elit. Duis pretium urna quis lobortis fringilla. Quisque eget imperdiet ipsum.
-
-Praesent porta ligula ut massa commodo interdum. Duis consectetur, leo quis volutpat dapibus, arcu metus ornare ligula, sit amet blandit lorem felis sit amet nulla. Nulla facilisi. Vestibulum sed bibendum risus. Quisque accumsan et enim ac vulputate. Vivamus sit amet neque pretium, vulputate mauris ac, laoreet felis. Nulla fringilla sem sed posuere lobortis. Quisque nec dolor ornare risus dapibus tincidunt vitae eu nunc. Sed posuere, lectus eget euismod imperdiet, ligula odio lobortis libero, ut tincidunt justo odio sed leo.
-
-Proin in rhoncus orci, ut ultrices enim. Pellentesque eget dolor non metus varius semper. Morbi eget velit nisl. Maecenas sed mattis nisi. Aenean congue eros nibh, vulputate semper nunc tristique nec. Aenean vehicula facilisis mauris, vel cursus enim venenatis quis. Donec interdum hendrerit justo euismod consequat. Nunc sit amet magna ultricies, laoreet nisl eu, ullamcorper purus. Nulla rutrum consectetur convallis. Integer in libero et eros accumsan accumsan. Proin laoreet pellentesque pellentesque. Sed auctor, risus ac adipiscing fermentum, leo mauris laoreet elit, sit amet venenatis neque nibh eu magna. Suspendisse sagittis justo et nibh semper gravida.
-
-Nam sagittis laoreet arcu id rhoncus. Nunc pharetra magna id felis volutpat consectetur. Phasellus varius tempus enim eget volutpat. Nulla aliquet sagittis eros, et laoreet turpis dapibus ut. Fusce malesuada sed urna sit amet convallis. Sed ut sem facilisis, dictum metus ut, vulputate purus. Donec et venenatis risus. Suspendisse dictum scelerisque est. Integer in elit sem. Fusce sit amet urna scelerisque, ultrices velit ut, consequat neque. Pellentesque mauris mauris, scelerisque ut congue vitae, imperdiet sit amet ipsum. Sed lacinia elementum placerat. Fusce tincidunt lorem eget iaculis accumsan. Mauris varius velit iaculis, ultrices mauris quis, placerat ligula.
-
-Suspendisse arcu nunc, scelerisque sed venenatis facilisis, euismod quis magna. Nullam porttitor lectus eu nisl vehicula rutrum. Sed gravida placerat neque, nec porttitor ipsum fermentum quis. Pellentesque fermentum erat ac lorem ullamcorper, sit amet elementum velit dignissim. Pellentesque aliquam dui quis sollicitudin mattis. Nulla blandit diam orci. Phasellus aliquam vestibulum nunc, vitae suscipit libero suscipit et. Nulla ut pharetra magna. In fermentum porta blandit. Donec semper, dolor quis venenatis pulvinar, nibh arcu gravida metus, vel rutrum eros ligula id massa. Cras vel urna a enim dignissim dapibus." />
-
-        </LinearLayout>
-    </ScrollView>
+             <TextView
+                 android:id="@+id/textView1"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur et neque quis massa fringilla convallis. In nec feugiat arcu. Donec consectetur dui aliquam tincidunt gravida. Sed id erat eu tortor dignissim interdum. Mauris non vehicula metus. Proin hendrerit, ipsum sed sagittis auctor, lorem dolor venenatis turpis, id fringilla felis orci ac mauris. Morbi eros dolor, vehicula nec mollis sit amet, tincidunt pulvinar massa. Donec iaculis felis sem, quis commodo nulla porttitor vel. Curabitur nec imperdiet tellus, et aliquam odio. Vivamus hendrerit metus eu odio dignissim tristique. Aliquam congue magna ac nisl laoreet, eu mattis massa pellentesque." />
+         </LinearLayout>
+     </view>
 
 </RelativeLayout>

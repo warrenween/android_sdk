@@ -164,7 +164,8 @@ public final class Tracker {
 	private String sections, authors, zones;
 	private Float pageLoadTime;
 	private Location location;
-	
+	private int x = -1, y = -1, w = -1, o = -1, m = -1;
+		
 	private Tracker( String accountId, String host, Context context ) {
 		this.accountId = accountId;
 		this.packageId = context.getPackageName();
@@ -230,6 +231,11 @@ public final class Tracker {
 		authors = null;
 		zones = null;
 		pageLoadTime = null;
+		x = -1;
+		y = -1;
+		w = -1;
+		o = -1;
+		m = -1;
 	}
 	
 	private void updateLocation() {
@@ -239,12 +245,12 @@ public final class Tracker {
 		try {
 			lastKnownNetworkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 		} catch( SecurityException se ) {
-			Log.d(TAG, "Network location unavailable. Try requesting ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION");
+			Log.w(TAG, "Network location unavailable. Try requesting ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION");
 		}
 		try {
 			lastKnownGPSLocation     = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		} catch( SecurityException se ) {
-			Log.d(TAG, "GPS location unavailable. Try requesting ACCESS_FINE_LOCATION" );
+			Log.w(TAG, "GPS location unavailable. Try requesting ACCESS_FINE_LOCATION" );
 		}
 		
 //		Log.w(TAG, "GPS: " + lastKnownGPSLocation );
@@ -383,7 +389,17 @@ public final class Tracker {
 		parameters.add(new Pinger.KeyValuePair("W", "Writing", ed.typed ? "1" : "0" ));
 		parameters.add(new Pinger.KeyValuePair("I", "Idle", ed.idle ? "1" : "0" ));
 		
-		//FIXME position keys, x, y, w, o, m
+		//position keys, x, y, w, o, m
+		if( x != -1 )
+			addParameterIfRequired( parameters, "x", "Scroll Position Top", String.valueOf(x));
+		if( y != -1 )
+			addParameterIfRequired( parameters, "y", "Scroll Window Height", String.valueOf(y));
+		if( w != -1 )
+			addParameterIfRequired( parameters, "w", "Height of currently viewable window", String.valueOf(w));
+		if( o != -1 )
+			addParameterIfRequired( parameters, "o", "Width of document fully rendered", String.valueOf(o));
+		if( m != -1 )
+			addParameterIfRequired( parameters, "x", "Max scroll depth durring session", String.valueOf(m));
 		
 		
 		// last key must be an empty underscore
@@ -623,7 +639,29 @@ public final class Tracker {
 		singleton.pageLoadTime = pageLoadTime;
 		singleton.pingParams.addOneTimeParameter("b");
 	}
-	
+	/** sets the position of the current view, assuming it scrolls. If it does not scroll, don't call this function. Negative values will
+	 * not be passed to the server.
+	 * 
+	 * @param x Scroll Position Top
+	 * @param y Scroll Window Height
+	 * @param w Height of the currently viewable window
+	 * @param o Width of the document fully rendered
+	 * @param m Max scroll depth during the session
+	 */
+	public static void setPosition( int x, int y, int w, int o ) {
+		if( singleton == null )
+			return;
+		singleton.x = x;
+		singleton.y = y;
+		singleton.w = w;
+		singleton.o = o;
+		singleton.m = Math.max(singleton.m,x);
+		singleton.pingParams.addOneTimeParameter("x");
+		singleton.pingParams.addOneTimeParameter("y");
+		singleton.pingParams.addOneTimeParameter("w");
+		singleton.pingParams.addOneTimeParameter("o");
+		singleton.pingParams.addOneTimeParameter("m");
+	}
 	
 	
 	private static String collectionToCommaString( Collection<String> col ) {
