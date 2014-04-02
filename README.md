@@ -8,7 +8,8 @@ include:
 * Minimal system impact
 * Simple installation and setup
 * Broad compatibility
-* Adhere to the same overall design as the iOS SDK so that cross-platform installation is easier to understand.
+* Adhere to the same overall design as the iOS SDK so that cross-platform
+installation is easier to understand.
 
 In addition, to the extent it does not contradict the above principles,
 the SDK is designed with Android design principls and flow in mind. The
@@ -54,18 +55,18 @@ onUserInteraction() function,
 as well, and any time the user types, you will want to call userTyped(). If your app
 has multiple activities, be sure to do this in each one.
 
-There are also a variety of other methods for seting optional information, such as
+There are also a variety of other methods for setting optional information, such as
 author and section; however the above functions are required. For a complete list, as
 well as detailed usage information about the above functions,
 see the Javadocs for com.chartbeat.androidsdk.Tracker.
 
 
 **GeoLocation:** If you wish to have the API automatically use
-GEOLocation information, simply include the android.permission.ACCESS_COARSE_LOCATION and or the android.permission.ACCESS_FINE_LOCATION permissions.
+GEOLocation information, simply include the android.permission.ACCESS_COARSE_LOCATION
+and/or the android.permission.ACCESS_FINE_LOCATION permissions.
 With these available, chartbeat will automatically access cached location
 data. Because cached data is used, the library will never turn the GPU hardware
-on or access this hardware directly. If you require fine-grained and up-to-date
-information, simply turn the GPS on yourself and turn it off when you have
+on or access this hardware directly. If you require fine-grained or up-to-date
+GEOLocation information, simply turn the GPS on yourself and turn it off when you have
 zeroed in on the current location. The Location information is updated whenever
-the View is updated.
-
+trackView() is called.
