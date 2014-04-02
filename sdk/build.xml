@@ -1,0 +1,14 @@
+<project name="CharbeatAndroidSDK" default="dist" basedir=".">
+  <description>
+The ChartBeat Android SDK
+  </description>
+  <!-- set global properties for this build -->
+  <property name="src" location="src" />
+  <property name="bin" location="bin" />
+
+  <target name="jar">
+    <jar destfile="ChartbeatAndroidSDK.jar" basedir="bin/classes/">
+      <include name="com/**" />
+    </jar>
+  </target>
+</project>
