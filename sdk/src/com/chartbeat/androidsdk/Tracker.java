@@ -221,6 +221,7 @@ public final class Tracker {
 		resetViewSpecificData();
 		updateLocation();
 		timer.start();
+		timer.alive();
 		timer.unsuspend();
 		if( DEBUG )
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: TRACK VIEW :: " + this.viewId );
@@ -297,12 +298,14 @@ public final class Tracker {
 	private void userInteractedImpl() {
 		engagementTracker.userEngaged();
 		userInfo.visited();
+		timer.alive();
 		if( DEBUG )
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: USER INTERACTED" );
 	}
 	private void userTypedImpl() {
 		engagementTracker.userTyped();
 		userInfo.visited();
+		timer.alive();
 		if( DEBUG )
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: USER TYPED" );
 	}
@@ -500,6 +503,7 @@ public final class Tracker {
 	public static void stopTracker() {
 		if( singleton != null ) {
 			singleton.timer.stop();
+			singleton.engagementTracker.stop();
 			singleton = null;
 		}
 	}
@@ -569,6 +573,7 @@ public final class Tracker {
 			return;
 		singleton.zones = zones;
 		singleton.pingParams.addOneTimeParameter("g2");
+		singleton.timer.alive();
 	}
 	/**
 	 * Call this method to set the zone(s) for the current view. Note that any commas found in the zone strings will be
@@ -581,6 +586,7 @@ public final class Tracker {
 			return;
 		singleton.zones = collectionToCommaString(zones);
 		singleton.pingParams.addOneTimeParameter("g2");
+		singleton.timer.alive();
 	}
 	
 	/**
@@ -593,6 +599,7 @@ public final class Tracker {
 			return;
 		singleton.authors = authors;
 		singleton.pingParams.addOneTimeParameter("g1");
+		singleton.timer.alive();
 	}
 	/**
 	 * Call this method to set the authors(s) for the current view. Note that any commas found in the author strings will be
@@ -605,6 +612,7 @@ public final class Tracker {
 			return;
 		singleton.authors = collectionToCommaString(authors);
 		singleton.pingParams.addOneTimeParameter("g1");
+		singleton.timer.alive();
 	}
 	
 	/**
@@ -617,6 +625,7 @@ public final class Tracker {
 			return;
 		singleton.sections = sections;
 		singleton.pingParams.addOneTimeParameter("g0");
+		singleton.timer.alive();
 	}
 	/**
 	 * Call this method to set the sections(s) for the current view. Note that any commas found in the section strings will be
@@ -629,6 +638,7 @@ public final class Tracker {
 			return;
 		singleton.sections = collectionToCommaString(sections);
 		singleton.pingParams.addOneTimeParameter("g0");
+		singleton.timer.alive();
 	}
 	/** call this to set the load time of the current page/view. This data will be purged when changing the view,
 	 * so be sure not to call this before calling trackView().
@@ -638,6 +648,7 @@ public final class Tracker {
 			return;
 		singleton.pageLoadTime = pageLoadTime;
 		singleton.pingParams.addOneTimeParameter("b");
+		singleton.timer.alive();
 	}
 	/** sets the position of the current view, assuming it scrolls. If it does not scroll, don't call this function. Negative values will
 	 * not be passed to the server.
@@ -661,6 +672,7 @@ public final class Tracker {
 		singleton.pingParams.addOneTimeParameter("w");
 		singleton.pingParams.addOneTimeParameter("o");
 		singleton.pingParams.addOneTimeParameter("m");
+		singleton.timer.alive();
 	}
 	
 	

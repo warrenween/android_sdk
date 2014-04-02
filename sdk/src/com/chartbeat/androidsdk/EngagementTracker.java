@@ -42,6 +42,10 @@ final class EngagementTracker extends TimerTask {
 		timer.schedule( new EngagementWindowFetcher(), 0 );
 	}
 	
+	synchronized void stop() {
+		timer.cancel();
+	}
+	
 	synchronized void setEngagementWindow( int window ) {
 		engagementWindow = window;
 	}
