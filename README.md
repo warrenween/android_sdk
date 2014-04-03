@@ -2,7 +2,7 @@ Chartbeat Android SDK
 ---------------------
 
 The Android SDK for Chartbeat is designed to be a simple, effecient, method
-of accessing the chartbeat SDK from an Android app. The design requirements
+of accessing the Chartbeat API from an Android app. The design requirements
 include:
 
 * Minimal system impact
@@ -18,7 +18,8 @@ Android developer should feel at home with this SDK.
 How to Use the SDK
 ------------------
 
-**Requirements:** To use the SDK, you must have a Chartbeat AccountID, and
+**Requirements:**
+To use the SDK, you must have a Chartbeat AccountID, and
 your application must have the `android.permission.INTERNET` and
 `android.permission.ACCESS_NETWORK_STATE` permissions. The SDK requires API
 Level 8 (Android 2.2).
@@ -30,7 +31,8 @@ class's static functions to start and stop the tracker, update it with informati
 about application state and so on. You can also set a good deal of optional
 information such as the author and so on.
 
-**Tracker Class:** The tracker class (`com.chartbeat.androidsdk.Tracker`) is
+**Tracker Class:**
+The tracker class (`com.chartbeat.androidsdk.Tracker`) is
 the only class you will need to access to use the SDK. All of the methods you
 need to access are `public` and `static`.
 
