@@ -23,7 +23,7 @@ public final class UserInfo {
 	private static final String TAG = "Chartbeat userdata";
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 	
-	private final String userId;
+	private final String userId, shortUserId;
 	private GregorianCalendar userCreated;
 	private boolean newUser;
 	private final TreeSet<GregorianCalendar> visitedDates;
@@ -55,6 +55,7 @@ public final class UserInfo {
 			newUser = false;
 		}
 		this.userId = userId;
+		this.shortUserId = userId.replace("-", "");
 		
 		// determine when the user was created:
 		// if this isn't set, we create it today.
@@ -99,8 +100,8 @@ public final class UserInfo {
 		return newUser;
 	}
 	
-	String getUserId() {
-		return userId;
+	String getShortUserId() {
+		return shortUserId;
 	}
 	
 	void visited() {

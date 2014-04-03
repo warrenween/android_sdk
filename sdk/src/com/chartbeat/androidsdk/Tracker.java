@@ -114,6 +114,9 @@ public final class Tracker {
 		void addOneTimeParameter( String k ) {
 			oneTimeKeys.add(k);
 		}
+		void newView() {
+			pingMode = PingMode.FULL_PING;
+		}
 		boolean includeParameter( final String parameter ) {
 			return oneTimeKeys.contains(parameter) || pingMode.includeParameter(parameter);
 		}
@@ -205,24 +208,30 @@ public final class Tracker {
 	}
 	
 	private void trackViewImpl( String viewId, String viewTitle ) {
-		this.internalReferrer = this.viewId;
-		this.viewId = viewId;
-		this.viewTitle = viewTitle;
-		this.token = UUID.randomUUID().toString();
-		this.timeCurrentViewStarted = System.currentTimeMillis();
 		ForegroundTracker.activityStarted();
 		timer.setInBackground( false );
 		engagementTracker.userEnteredView();
 		userInfo.visited();
 		if( this.internalReferrer != null )
 			userInfo.markUserAsOld();
-		pingParams.addOneTimeParameter( "i" );
-		pingParams.addOneTimeParameter( "D" );
-		resetViewSpecificData();
 		updateLocation();
 		timer.start();
 		timer.alive();
 		timer.unsuspend();
+		
+		// are we hitting the same view again?
+		if( this.viewId != null && this.viewId.equals( viewId ) )
+			return;
+		
+		this.internalReferrer = this.viewId;
+		this.viewId = viewId;
+		this.viewTitle = viewTitle;
+		this.token = UUID.randomUUID().toString().replace("-", "");
+		this.timeCurrentViewStarted = System.currentTimeMillis();
+		pingParams.newView();
+//		pingParams.addOneTimeParameter( "i" );
+//		pingParams.addOneTimeParameter( "D" );
+		resetViewSpecificData();
 		if( DEBUG )
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: TRACK VIEW :: " + this.viewId );
 	}
@@ -331,7 +340,7 @@ public final class Tracker {
 		addParameterIfRequired( parameters, "d", "Real Domain", packageId );
 		addParameterIfRequired( parameters, "p", "Path", viewId );
 		addParameterIfRequired( parameters, "t", "Token", token );
-		addParameterIfRequired( parameters, "u", "User Id", userInfo.getUserId() );
+		addParameterIfRequired( parameters, "u", "User Id", userInfo.getShortUserId() );
 		addParameterIfRequired( parameters, "g", "Account Id", accountId );
 		
 		if( appReferrer != null )
@@ -410,7 +419,7 @@ public final class Tracker {
 
 		if( DEBUG ) {
 			Log.d(TAG, "PING! User Data: " + parameters );
-			Log.d(TAG, "PING! User agent " + userAgent );
+//			Log.d(TAG, "PING! User agent " + userAgent );
 		}
 		if( Pinger.isConnected(context) ) {
 			boolean exception = false;
