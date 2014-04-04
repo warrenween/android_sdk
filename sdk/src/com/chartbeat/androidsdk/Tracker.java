@@ -362,7 +362,7 @@ public final class Tracker {
 		
 		addParameterIfRequired( parameters, "f", "Visit Frequency", userInfo.getUserVisitFrequencyString());
 		
-		if( !isInBackground ) {
+		{
 			long timeInCurrentView = now - this.timeCurrentViewStarted;
 			if( timeInCurrentView < 0 ) //could happen if time is adjusting
 				timeInCurrentView = 0;
