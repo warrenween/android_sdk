@@ -66,7 +66,6 @@ public final class Tracker {
 			EVERY_TIME.add("t");
 			EVERY_TIME.add("u");
 			EVERY_TIME.add("g");
-			EVERY_TIME.add("v");
 			EVERY_TIME.add("c");
 			EVERY_TIME.add("j");
 			EVERY_TIME.add("E");
@@ -227,6 +226,9 @@ public final class Tracker {
 				return;
 
 			this.internalReferrer = this.viewId;
+			if( this.internalReferrer != null ) {
+				this.appReferrer = null;
+			}
 			this.viewId = viewId;
 			this.viewTitle = viewTitle;
 			this.priorToken = this.token;
@@ -476,8 +478,6 @@ public final class Tracker {
 				}
 			}
 			if (code == 200) {
-				internalReferrer = null;
-				appReferrer = null;
 				lastSuccessfulPingTime = System.currentTimeMillis();
 			}
 		} else {
@@ -548,8 +548,10 @@ public final class Tracker {
 	 */
 	public static void stopTracker() {
 		if (singleton != null) {
-			singleton.timer.stop();
-			singleton.engagementTracker.stop();
+			synchronized( singleton ) {
+				singleton.timer.stop();
+				singleton.engagementTracker.stop();
+			}
 			singleton = null;
 		}
 	}
