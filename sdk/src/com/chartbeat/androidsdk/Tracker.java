@@ -414,7 +414,7 @@ public final class Tracker {
 		if( o != -1 )
 			addParameterIfRequired( parameters, "o", "Width of document fully rendered", String.valueOf(o));
 		if( m != -1 )
-			addParameterIfRequired( parameters, "x", "Max scroll depth durring session", String.valueOf(m));
+			addParameterIfRequired( parameters, "m", "Max scroll depth durring session", String.valueOf(m));
 		
 		
 		// last key must be an empty underscore
