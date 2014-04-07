@@ -7,7 +7,8 @@ import android.util.Log;
 import android.widget.ScrollView;
 
 public final class MainScrollView extends ScrollView {
-	String TAG = "Chartbeat scrollbar";
+	private static final String TAG = "Chartbeat scrollbar";
+	private int scrollPosition = 0;
 
 	public MainScrollView(Context context) {
 		super(context);
@@ -26,5 +27,10 @@ public final class MainScrollView extends ScrollView {
 		Log.d(TAG,"Scrolled: " + l + " : " + t );
 		Log.d(TAG,"M: " + (this.getChildAt(0).getHeight()-this.getHeight()) );
 		Tracker.setPosition( t, (this.getChildAt(0).getHeight()-this.getHeight()), -1, getWidth() );
+		scrollPosition = t;
+	}
+	
+	public int getScrollPosition() {
+		return scrollPosition;
 	}
 }

@@ -214,7 +214,7 @@ public final class Tracker {
 		}
 	}
 
-	private synchronized void trackViewImpl(String viewId, String viewTitle) {
+	private synchronized void trackViewImpl(String viewId, String viewTitle, int x, int y, int w, int o) {
 		ForegroundTracker.activityStarted();
 		timer.setInBackground(false);
 		engagementTracker.userEnteredView();
@@ -239,6 +239,16 @@ public final class Tracker {
 			if (DEBUG)
 				Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: TRACK VIEW :: " + this.viewId);
 		} finally {
+			this.x = x;
+			this.y = y;
+			this.w = w;
+			this.o = o;
+			this.m = Math.max(singleton.m, x);
+			this.pingParams.addOneTimeParameter("x");
+			this.pingParams.addOneTimeParameter("y");
+			this.pingParams.addOneTimeParameter("w");
+			this.pingParams.addOneTimeParameter("o");
+			this.pingParams.addOneTimeParameter("m");
 			updateLocation();
 			timer.start();
 			timer.alive();
@@ -545,8 +555,8 @@ public final class Tracker {
 	}
 
 	/**
-	 * Call this whenever you display a new view. If the tracker has not been
-	 * initialized, this call will be ignored.
+	 * Call this whenever you display a new view. Use this in views where you are not tracking position.
+	 *  If the tracker has not been initialized, this call will be ignored.
 	 * 
 	 * @param viewId
 	 *            the id of the view being displayed. Must not be null.
@@ -558,7 +568,35 @@ public final class Tracker {
 			throw new NullPointerException("viewId cannot be null");
 		if (singleton == null)
 			return;
-		singleton.trackViewImpl(viewId, viewTitle);
+		singleton.trackViewImpl(viewId, viewTitle, -1, -1, -1, -1);
+	}
+	
+	/**
+	 * Call this whenever you display a new view. Use this in views where you are tracking position.
+	 *  If the tracker has not been
+	 * initialized, this call will be ignored.
+	 * 
+	 * @param viewId
+	 *            the id of the view being displayed. Must not be null.
+	 * @param viewTitle
+	 *            the title of the view. may be null.
+	 * @param x
+	 *            Scroll Position Top
+	 * @param y
+	 *            Scroll Window Height
+	 * @param w
+	 *            Height of the currently viewable window
+	 * @param o
+	 *            Width of the document fully rendered
+	 * @param m
+	 *            Max scroll depth during the session
+	 */
+	public static void trackView(String viewId, String viewTitle, int x, int y, int w, int o) {
+		if (viewId == null)
+			throw new NullPointerException("viewId cannot be null");
+		if (singleton == null)
+			return;
+		singleton.trackViewImpl(viewId, viewTitle, x, y, w, o);
 	}
 
 	/**

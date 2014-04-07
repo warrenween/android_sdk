@@ -46,7 +46,8 @@ public class ChartbeatMainActivity extends Activity {
 	@Override
 	public void onResume() {
 		super.onResume();
-		Tracker.trackView(VIEW_ID, VIEW_TITLE);
+		MainScrollView msv = (MainScrollView) getWindow().getDecorView().findViewById(R.id.scrollView1);
+		Tracker.trackView(VIEW_ID, VIEW_TITLE, msv.getScrollPosition(), (msv.getChildAt(0).getHeight()-msv.getHeight()), -1, msv.getWidth());
 	}
 	
 	@Override
