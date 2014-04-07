@@ -148,7 +148,7 @@ public final class Tracker {
 	private static Tracker singleton;
 	
 	private final String accountId, host, packageId, userAgent;
-	private String viewId, viewTitle, token;
+	private String viewId, viewTitle, token, priorToken;
 	private String appReferrer = "";
 	private PingParams pingParams;
 	private String internalReferrer = null;
@@ -214,26 +214,29 @@ public final class Tracker {
 		userInfo.visited();
 		if( this.internalReferrer != null )
 			userInfo.markUserAsOld();
-		updateLocation();
-		timer.start();
-		timer.alive();
-		timer.unsuspend();
-		
-		// are we hitting the same view again?
-		if( this.viewId != null && this.viewId.equals( viewId ) )
-			return;
-		
-		this.internalReferrer = this.viewId;
-		this.viewId = viewId;
-		this.viewTitle = viewTitle;
-		this.token = UUID.randomUUID().toString().replace("-", "");
-		this.timeCurrentViewStarted = System.currentTimeMillis();
-		pingParams.newView();
-//		pingParams.addOneTimeParameter( "i" );
-//		pingParams.addOneTimeParameter( "D" );
-		resetViewSpecificData();
-		if( DEBUG )
-			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: TRACK VIEW :: " + this.viewId );
+		try {
+			// are we hitting the same view again?
+			if( this.viewId != null && this.viewId.equals( viewId ) )
+				return;
+			
+			this.internalReferrer = this.viewId;
+			this.viewId = viewId;
+			this.viewTitle = viewTitle;
+			this.priorToken = this.token;
+			this.token = UUID.randomUUID().toString().replace("-", "");
+			this.timeCurrentViewStarted = System.currentTimeMillis();
+			pingParams.newView();
+//			pingParams.addOneTimeParameter( "i" );
+//			pingParams.addOneTimeParameter( "D" );
+			resetViewSpecificData();
+			if( DEBUG )
+				Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: TRACK VIEW :: " + this.viewId );
+		} finally {
+			updateLocation();
+			timer.start();
+			timer.alive();
+			timer.unsuspend();
+		}
 	}
 	
 	private void resetViewSpecificData() {
@@ -382,8 +385,8 @@ public final class Tracker {
 		addParameterIfRequired( parameters, "j", "Decay", String.valueOf( timer.expectedNextInterval(isInBackground)*2) );
 		
 		// only include this if the j, decay time, has not passed since the last ping.
-		if( internalReferrer != null && lastSuccessfulPingTime + lastDecayTime > System.currentTimeMillis() )
-			addParameterIfRequired( parameters, "D", "Force Decay", internalReferrer );
+		if( priorToken != null && lastSuccessfulPingTime + lastDecayTime > System.currentTimeMillis() )
+			addParameterIfRequired( parameters, "D", "Force Decay", priorToken );
 		lastDecayTime = timer.expectedNextInterval(isInBackground) * 2 * 1000;
 		
 		if( pageLoadTime != null )
