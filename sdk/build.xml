@@ -34,6 +34,7 @@ The ChartBeat Android SDK
      <copy todir="Chartbeat-android/docs/api">
        <fileset dir="docs/api" />
      </copy>
+     <copy file="../README.md" todir="Chartbeat-android/docs" />
      <zip destfile="Chartbeat-android.zip" basedir="Chartbeat-android" />
   </target>
   <target name="clean">
