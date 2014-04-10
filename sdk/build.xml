@@ -11,4 +11,35 @@ The ChartBeat Android SDK
       <include name="com/**" />
     </jar>
   </target>
+  <target name="doc">
+  <javadoc packagenames="com.chartbeat.androidsdk.*"
+           sourcepath="src"
+           defaultexcludes="yes"
+           destdir="docs/api"
+           author="true"
+           version="true"
+           use="true"
+           windowtitle="Chartbeat Android SDK">
+    <doctitle><![CDATA[<h1>Chartbeat Android SDK</h1>]]></doctitle>
+    <bottom><![CDATA[<i>Copyright &#169; 2014 Chartbeat. All Rights Reserved.</i>]]></bottom>
+    <link offline="true" href="http://docs.oracle.com/javase/7/docs/api/" packagelistLoc="C:\tmp"/>
+    <link href="http://docs.oracle.com/javase/7/docs/api/"/>
+  </javadoc>
+  </target>
+  <target name="dist" depends="doc,jar">
+     <mkdir dir="Chartbeat-android" />
+     <mkdir dir="Chartbeat-android/docs" />
+     <mkdir dir="Chartbeat-android/docs/api" />
+     <copy file="ChartbeatAndroidSDK.jar" todir="Chartbeat-android"/>
+     <copy todir="Chartbeat-android/docs/api">
+       <fileset dir="docs/api" />
+     </copy>
+     <zip destfile="Chartbeat-android.zip" basedir="Chartbeat-android" />
+  </target>
+  <target name="clean">
+     <delete dir="Chartbeat-android" />
+     <delete file="Chartbeat-android.zip" />
+     <delete dir="docs" />
+     <delete file="ChartbeatAndroidSDK.jar" />
+  </target>
 </project>
