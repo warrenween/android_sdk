@@ -34,19 +34,20 @@ import android.webkit.WebView;
  * <li><strong>startTrackerWithAccountId():</strong> call one of these methods
  * once at application launch. If this is called multiple times, only the first
  * call will have any effect -- subsequent calls will be ignored.
- * <li><strong>trackView():</strong> call this every time the view changes. This
+ * <li><strong>trackView():</strong> call one of these methods every time the view changes. This
  * can be done by calling this function in the onResume() function of your
  * activity. This not only updates the view, if necessary, but also ensures that
  * the tracker knows when the app is in the foreground and engaged.
- * <li><strong>userLeft():</strong> call this when the user leaves the app. This
- * can be done by calling the function in onPause() function of your activity.
+ * <li><strong>userLeftView():</strong> call this when the user leaves the view. This
+ * can be done by calling the function in the onPause() function of your activity.
  * <li><strong>userInteracted():</strong> call this every time the user
  * interacts with the application and the application, such as touching the
  * screen. This can be done by calling the function in onUserInteracted()
  * function of your activity.
  * </ul>
  * 
- * All other methods are optional.
+ * All other methods are optional, and allow you to, for example, track scroll position,
+ * authors, when the user types and so on.
  * 
  * 
  * @author bjorn
@@ -614,7 +615,8 @@ public final class Tracker {
 
 	/**
 	 * Call this whenever the user interacts with your app. If the tracker has
-	 * not been initialized, this call will be ignored.
+	 * not been initialized, this call will be ignored. You will likely want to
+	 * put this in your onUserInteraction() function of your activity.
 	 */
 	public static void userInteracted() {
 		if (singleton == null)
@@ -655,7 +657,7 @@ public final class Tracker {
 
 	/**
 	 * Call this method to set the zone(s) for the current view. This data will
-	 * be purged when changing the view, so be sure not to call this before
+	 * be purged when changing the view, so be sure to call this after
 	 * calling trackView().
 	 * 
 	 * @param zones
@@ -690,7 +692,7 @@ public final class Tracker {
 
 	/**
 	 * Call this method to set the author(s) for the current view. This data
-	 * will be purged when changing the view, so be sure not to call this before
+	 * will be purged when changing the view, so be sure to call this after
 	 * calling trackView().
 	 * 
 	 * @param zones
@@ -725,7 +727,7 @@ public final class Tracker {
 
 	/**
 	 * Call this method to set the section(s) for the current view. This data
-	 * will be purged when changing the view, so be sure not to call this before
+	 * will be purged when changing the view, so be sure to call this after
 	 * calling trackView().
 	 * 
 	 * @param sections
@@ -759,8 +761,8 @@ public final class Tracker {
 	}
 
 	/**
-	 * call this to set the load time of the current page/view. This data will
-	 * be purged when changing the view, so be sure not to call this before
+	 * Call this to set the load time of the current page/view. This data will
+	 * be purged when changing the view, so be sure to call this after
 	 * calling trackView().
 	 * */
 	public static void setViewLoadTime(float pageLoadTime) {
