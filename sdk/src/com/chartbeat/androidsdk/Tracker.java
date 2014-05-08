@@ -55,7 +55,7 @@ public final class Tracker {
 	/** This can be set to true if you want the tracker to display debugging information
 	 * in the logs.
 	 */
-	public static final boolean DEBUG = true;
+	public static final boolean DEBUG = false;
 	private static final long ONE_HOUR = 1 * 60 * 60 * 1000;
 
 	private enum PingMode {
