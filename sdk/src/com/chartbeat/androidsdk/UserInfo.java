@@ -23,7 +23,7 @@ public final class UserInfo {
 	private static final String TAG = "Chartbeat userdata";
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 	
-	private final String userId, shortUserId;
+	private final String userId;
 	private GregorianCalendar userCreated;
 	private boolean newUser;
 	private final TreeSet<GregorianCalendar> visitedDates;
@@ -36,17 +36,16 @@ public final class UserInfo {
 		String userId = prefs.getString("userid", null);
 		
 		//check for corruption
-		if( userId != null ) {
-			try {
-				UUID.fromString(userId);
-			} catch(IllegalArgumentException iae) {
-				Log.e(TAG, "UserId has become corrupt" + userId );
-				userId = null;
-			}
+		if( userId.length() != 16 ) {
+			Log.e(TAG, "UserId has become corrupt: " + userId );
+			SharedPreferences.Editor ed = prefs.edit();
+			ed.clear();
+			ed.commit();
+			userId = null;
 		}
 		// create new user
 		if( userId == null ) {
-			userId = UUID.randomUUID().toString();
+			userId = Util.randomChars(16);
 			SharedPreferences.Editor ed = prefs.edit();
 			ed.putString("userid", userId);
 			ed.commit();
@@ -55,7 +54,6 @@ public final class UserInfo {
 			newUser = false;
 		}
 		this.userId = userId;
-		this.shortUserId = userId.replace("-", "");
 		
 		// determine when the user was created:
 		// if this isn't set, we create it today.
@@ -100,8 +98,8 @@ public final class UserInfo {
 		return newUser;
 	}
 	
-	String getShortUserId() {
-		return shortUserId;
+	String getUserId() {
+		return userId;
 	}
 	
 	void visited() {

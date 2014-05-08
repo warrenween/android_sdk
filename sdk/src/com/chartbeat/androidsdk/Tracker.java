@@ -56,7 +56,7 @@ public final class Tracker {
 	/** This can be set to true if you want the tracker to display debugging information
 	 * in the logs.
 	 */
-	public static final boolean DEBUG = false;
+	public static final boolean DEBUG = true;
 	private static final long ONE_HOUR = 1 * 60 * 60 * 1000;
 
 	private enum PingMode {
@@ -149,10 +149,9 @@ public final class Tracker {
 	}
 
 	private static final String USER_AGENT_SUFFIX = "/App";
-	private static final long SDK_MAJOR_VERSION = 0;
-	private static final long SDK_MINOR_VERSION = 0;
-	private static final String SDK_VERSION_SUFFIX = "PRE";
-	private static final String SDK_VERSION = SDK_MAJOR_VERSION + "." + SDK_MINOR_VERSION + "_" + SDK_VERSION_SUFFIX;
+	private static final String SDK_NAME = "android";
+	private static final long SDK_SERIAL_VERSION_NUMBER = 2;
+	private static final String SDK_VERSION = SDK_NAME + "_" + SDK_SERIAL_VERSION_NUMBER ;
 	private static final String TAG = "ChartBeat Tracker";
 	private static Tracker singleton;
 
@@ -236,7 +235,7 @@ public final class Tracker {
 			this.viewId = viewId;
 			this.viewTitle = viewTitle;
 			this.priorToken = this.token;
-			this.token = UUID.randomUUID().toString().replace("-", "");
+			this.token = Util.randomChars(28);
 			this.timeCurrentViewStarted = System.currentTimeMillis();
 			pingParams.newView();
 			// pingParams.addOneTimeParameter( "i" );
@@ -355,8 +354,8 @@ public final class Tracker {
 	}
 
 	synchronized void ping() {
-		// if( viewId == null )
-		// return;
+		if( viewId == null )
+		   return;
 
 		boolean isInBackground = ForegroundTracker.isInBackground();
 
@@ -368,7 +367,7 @@ public final class Tracker {
 		addParameterIfRequired(parameters, "d", "Real Domain", packageId);
 		addParameterIfRequired(parameters, "p", "Path", viewId);
 		addParameterIfRequired(parameters, "t", "Token", token);
-		addParameterIfRequired(parameters, "u", "User Id", userInfo.getShortUserId());
+		addParameterIfRequired(parameters, "u", "User Id", userInfo.getUserId());
 		addParameterIfRequired(parameters, "g", "Account Id", accountId);
 
 		if (appReferrer != null)
@@ -498,7 +497,9 @@ public final class Tracker {
 	}
 
 	private synchronized void addParameterIfRequired(ArrayList<Pinger.KeyValuePair> parameters, PingParams pingInfo, String key, String note, String value) {
+		//System.out.println( "--" + key );
 		if (pingInfo.includeParameter(key)) {
+			//System.out.println( "----" + key + "-" + value);
 			parameters.add(new Pinger.KeyValuePair(key, note, value));
 		}
 	}
