@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.UUID;
 
 import com.chartbeat.androidsdk.EngagementTracker.EngagementData;
 
@@ -255,7 +254,7 @@ public final class Tracker {
 			this.pingParams.addOneTimeParameter("o");
 			this.pingParams.addOneTimeParameter("m");
 			updateLocation();
-			timer.start();
+			timer.restart();
 			timer.alive();
 			timer.unsuspend();
 		}
@@ -353,9 +352,13 @@ public final class Tracker {
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: USER LEFT");
 	}
 
-	synchronized void ping() {
+	synchronized void ping(boolean needsFullPingHint) {
 		if( viewId == null )
 		   return;
+		
+		// decrease the likelihood of getting a 500 back
+		if( needsFullPingHint )
+			pingParams.pingReset();
 
 		boolean isInBackground = ForegroundTracker.isInBackground();
 
@@ -407,13 +410,13 @@ public final class Tracker {
 		// I got frequent, spurious 500's.
 		// int decay = timer.expectedNextInterval(isInBackground);
 		// if( decay != timer.getCurrentInterval() || allParameters )
-		addParameterIfRequired(parameters, "j", "Decay", String.valueOf(timer.expectedNextInterval(isInBackground) * 2));
+		addParameterIfRequired(parameters, "j", "Decay", String.valueOf(timer.expectedNextInterval() * 2));
 
 		// only include this if the j, decay time, has not passed since the last
 		// ping.
 		if (priorToken != null && lastSuccessfulPingTime + lastDecayTime > System.currentTimeMillis())
 			addParameterIfRequired(parameters, "D", "Force Decay", priorToken);
-		lastDecayTime = timer.expectedNextInterval(isInBackground) * 2 * 1000;
+		lastDecayTime = timer.expectedNextInterval() * 2 * 1000;
 
 		if (pageLoadTime != null)
 			addParameterIfRequired(parameters, "b", "Page Load Time", String.valueOf(pageLoadTime.floatValue()));

@@ -20,10 +20,8 @@ public final class Timer {
 	private static final long SUSPENSION_TIME = 10 * ONE_MINUTE; //suspension is after the server rejects us due to too many clients.
 	private java.util.Timer timer;
 	private long defaultInterval = 15; // in seconds
-	private long backgroundInterval = 60;
-	private long backgroundCount = 0;
 	private long currentInterval = defaultInterval;
-	private boolean inBackground;
+	private boolean inBackground, wasInBackground;
 	private long suspendTime = 0;
 	private boolean isSuspended = false;
 	private boolean retryImmediately = false;
@@ -80,8 +78,8 @@ public final class Timer {
 	synchronized int getCurrentInterval() {
 		return (int) currentInterval;
 	}
-	synchronized int expectedNextInterval( boolean inBackground ) {
-		return (int) ( inBackground ? backgroundInterval : currentInterval );
+	synchronized int expectedNextInterval() {
+		return (int) ( currentInterval );
 	}
 	
 	private final class MyTimerTask extends TimerTask {
@@ -89,15 +87,11 @@ public final class Timer {
 		public void run() {
 			try {
 				if( !isSuspended ) {
-					if( !inBackground || backgroundCount == 0 || retryImmediately ) {
+					if( !inBackground || retryImmediately ) {
 						retryImmediately = false;
-						tracker.ping();
+						tracker.ping(wasInBackground);
+						wasInBackground = false;
 					}
-					if( inBackground ) {
-						++backgroundCount;
-					}
-					if( backgroundCount >= backgroundInterval/currentInterval )
-						backgroundCount = 0;
 				}
 			} catch (Exception e) {
 				//we catch all exceptions to ensure that we can reschedule the next run.
@@ -117,9 +111,9 @@ public final class Timer {
 	}
 
 	synchronized void setInBackground(boolean inBackground) {
-		if( inBackground && !this.inBackground )
-			backgroundCount = 0;
 		this.inBackground = inBackground;
+		if( inBackground )
+			wasInBackground = true;
 	}
 
 	public synchronized void alive() {
