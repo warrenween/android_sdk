@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewTreeObserver;
 
 import com.chartbeat.androidsdk.Tracker;
 
@@ -28,6 +29,17 @@ public class ChartbeatMainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_chartbeat_main);
 		Tracker.startTrackerWithAccountId("54876", this);
+		final MainScrollView msv = (MainScrollView) getWindow().getDecorView().findViewById(R.id.scrollView1);
+		msv.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+		            @Override
+		            public void onGlobalLayout() {
+		        		Tracker.trackView(VIEW_ID, VIEW_TITLE,
+		        				msv.getScrollPosition(),
+		        				msv.getContentHeight(),
+		        				msv.getViewHeight(),
+		        				msv.getWidth() );
+		            }
+		        });
 	}
 
 	@Override
@@ -47,7 +59,12 @@ public class ChartbeatMainActivity extends Activity {
 	public void onResume() {
 		super.onResume();
 		MainScrollView msv = (MainScrollView) getWindow().getDecorView().findViewById(R.id.scrollView1);
-		Tracker.trackView(VIEW_ID, VIEW_TITLE, msv.getScrollPosition(), (msv.getChildAt(0).getHeight()-msv.getHeight()), -1, msv.getWidth());
+		
+		Tracker.trackView(VIEW_ID, VIEW_TITLE,
+				msv.getScrollPosition(),
+				msv.getContentHeight(),
+				msv.getViewHeight(),
+				msv.getWidth() );
 	}
 	
 	@Override

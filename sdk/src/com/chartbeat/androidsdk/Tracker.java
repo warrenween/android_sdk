@@ -75,6 +75,11 @@ public final class Tracker {
 			EVERY_TIME.add("R");
 			EVERY_TIME.add("W");
 			EVERY_TIME.add("I");
+			EVERY_TIME.add("x");
+			EVERY_TIME.add("m");
+			EVERY_TIME.add("y");
+			EVERY_TIME.add("w");
+			EVERY_TIME.add("o");
 			EVERY_TIME.add("_");
 		}
 
@@ -403,7 +408,7 @@ public final class Tracker {
 			addParameterIfRequired(parameters, "c", "Time on View (m)", String.format(Locale.US, "%.1f", cd));
 		}
 		addParameterIfRequired(parameters, "S", "Screen Width", String.valueOf(screenWidth));
-		addParameterIfRequired(parameters, "w", "Window Height", String.valueOf(windowHeight));
+		//addParameterIfRequired(parameters, "w", "Window Height", String.valueOf(windowHeight));
 
 		// although j is listed as "optional", when I only included it at the
 		// start and when it changed,

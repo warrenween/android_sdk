@@ -26,11 +26,22 @@ public final class MainScrollView extends ScrollView {
 	public void onScrollChanged(int l, int t, int oldl, int oldt) {
 		Log.d(TAG,"Scrolled: " + l + " : " + t );
 		Log.d(TAG,"M: " + (this.getChildAt(0).getHeight()-this.getHeight()) );
-		Tracker.setPosition( t, (this.getChildAt(0).getHeight()-this.getHeight()), -1, getWidth() );
+		Tracker.setPosition( t,
+				getContentHeight(),
+				getViewHeight(),
+				getWidth() );
 		scrollPosition = t;
 	}
 	
 	public int getScrollPosition() {
 		return scrollPosition;
+	}
+	
+	public int getContentHeight() {
+		return this.getHeight();
+	}
+	
+	public int getViewHeight() {
+		return this.getChildAt(0).getHeight();
 	}
 }
