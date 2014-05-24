@@ -9,7 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TreeSet;
-import java.util.UUID;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -36,7 +35,7 @@ public final class UserInfo {
 		String userId = prefs.getString("userid", null);
 		
 		//check for corruption
-		if( userId.length() != 16 ) {
+		if( userId != null && userId.length() != 16 ) {
 			Log.e(TAG, "UserId has become corrupt: " + userId );
 			SharedPreferences.Editor ed = prefs.edit();
 			ed.clear();
