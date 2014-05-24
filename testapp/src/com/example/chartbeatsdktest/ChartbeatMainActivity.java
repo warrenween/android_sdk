@@ -33,6 +33,7 @@ public class ChartbeatMainActivity extends Activity {
 		msv.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 		            @Override
 		            public void onGlobalLayout() {
+		            	System.out.println( "------- " + this );
 		        		Tracker.trackView(VIEW_ID, VIEW_TITLE,
 		        				msv.getScrollPosition(),
 		        				msv.getContentHeight(),
@@ -60,11 +61,13 @@ public class ChartbeatMainActivity extends Activity {
 		super.onResume();
 		MainScrollView msv = (MainScrollView) getWindow().getDecorView().findViewById(R.id.scrollView1);
 		
-		Tracker.trackView(VIEW_ID, VIEW_TITLE,
-				msv.getScrollPosition(),
-				msv.getContentHeight(),
-				msv.getViewHeight(),
-				msv.getWidth() );
+		if( msv.getContentHeight() != 0 ) {
+			Tracker.trackView(VIEW_ID, VIEW_TITLE,
+					msv.getScrollPosition(),
+					msv.getContentHeight(),
+					msv.getViewHeight(),
+					msv.getWidth() );
+		}
 	}
 	
 	@Override

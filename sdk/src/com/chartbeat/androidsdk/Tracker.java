@@ -55,7 +55,7 @@ public final class Tracker {
 	/** This can be set to true if you want the tracker to display debugging information
 	 * in the logs.
 	 */
-	public static final boolean DEBUG = false;
+	public static final boolean DEBUG = true;
 	private static final long ONE_HOUR = 1 * 60 * 60 * 1000;
 
 	private enum PingMode {
@@ -166,7 +166,6 @@ public final class Tracker {
 	private String internalReferrer = null;
 	private long timeCurrentViewStarted;
 	private final int screenWidth;
-	private int windowHeight;
 	private final UserInfo userInfo;
 	private final Timer timer;
 	private final Pinger pinger;
@@ -187,7 +186,7 @@ public final class Tracker {
 		Point size = new Point();
 		getScreenSize(context, size);
 		screenWidth = size.x;
-		windowHeight = size.y;
+//		windowHeight = size.y;
 
 		this.userInfo = new UserInfo(context);
 		if (host == null || host.length() == 0) {
@@ -220,13 +219,24 @@ public final class Tracker {
 		}
 	}
 
-	private synchronized void trackViewImpl(String viewId, String viewTitle, int x, int y, int w, int o) {
+	long lastTrackTime = 0;
+	private synchronized void trackViewImpl(String viewId, String viewTitle, int x, int w, int y, int o) {
 		ForegroundTracker.activityStarted();
 		timer.setInBackground(false);
 		engagementTracker.userEnteredView();
 		userInfo.visited();
+		
+		//avoid repeat pings to the same view within one second.
+		// this allows the user to repeatedly call trackView if necessary.
+		long now = System.currentTimeMillis();
+		boolean requiresNewPing = true;
+		if( now - lastTrackTime < 1000 && this.viewId != null && this.viewId.equals(viewId) )
+			requiresNewPing = false;
+		if( token == null )
+			requiresNewPing = true;
 		if (this.internalReferrer != null)
 			userInfo.markUserAsOld();
+		lastTrackTime = now;
 		try {
 			// are we hitting the same view again?
 			if (this.viewId != null && this.viewId.equals(viewId))
@@ -239,7 +249,8 @@ public final class Tracker {
 			this.viewId = viewId;
 			this.viewTitle = viewTitle;
 			this.priorToken = this.token;
-			this.token = Util.randomChars(28);
+			if( requiresNewPing )
+				this.token = Util.randomChars(28);
 			this.timeCurrentViewStarted = System.currentTimeMillis();
 			pingParams.newView();
 			// pingParams.addOneTimeParameter( "i" );
@@ -249,8 +260,8 @@ public final class Tracker {
 				Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: TRACK VIEW :: " + this.viewId);
 		} finally {
 			this.x = x;
-			this.y = y;
 			this.w = w;
+			this.y = y;
 			this.o = o;
 			this.m = Math.max(singleton.m, x);
 			this.pingParams.addOneTimeParameter("x");
@@ -259,9 +270,11 @@ public final class Tracker {
 			this.pingParams.addOneTimeParameter("o");
 			this.pingParams.addOneTimeParameter("m");
 			updateLocation();
-			timer.restart();
-			timer.alive();
-			timer.unsuspend();
+			if( requiresNewPing ) {
+				timer.restart();
+				timer.unsuspend();
+				timer.alive();
+			}
 		}
 	}
 
@@ -442,9 +455,9 @@ public final class Tracker {
 		if (x != -1)
 			addParameterIfRequired(parameters, "x", "Scroll Position Top", String.valueOf(x));
 		if (y != -1)
-			addParameterIfRequired(parameters, "y", "Scroll Window Height", String.valueOf(y));
+			addParameterIfRequired(parameters, "y", "Content Height", String.valueOf(y));
 		if (w != -1)
-			addParameterIfRequired(parameters, "w", "Height of currently viewable window", String.valueOf(w));
+			addParameterIfRequired(parameters, "w", "Scroll Window Height", String.valueOf(w));
 		if (o != -1)
 			addParameterIfRequired(parameters, "o", "Width of document fully rendered", String.valueOf(o));
 		if (m != -1)
@@ -597,21 +610,21 @@ public final class Tracker {
 	 *            the title of the view. may be null.
 	 * @param x
 	 *            Scroll Position Top
-	 * @param y
-	 *            Scroll Window Height
 	 * @param w
-	 *            Height of the currently viewable window
+	 *            Scroll Window Height
+	 * @param y
+	 *            Total Content Height
 	 * @param o
 	 *            Width of the document fully rendered
 	 * @param m
 	 *            Max scroll depth during the session
 	 */
-	public static void trackView(String viewId, String viewTitle, int x, int y, int w, int o) {
+	public static void trackView(String viewId, String viewTitle, int x, int w, int y, int o) {
 		if (viewId == null)
 			throw new NullPointerException("viewId cannot be null");
 		if (singleton == null)
 			return;
-		singleton.trackViewImpl(viewId, viewTitle, x, y, w, o);
+		singleton.trackViewImpl(viewId, viewTitle, x, w, y, o);
 	}
 
 	/**
@@ -794,22 +807,22 @@ public final class Tracker {
 	 * 
 	 * @param x
 	 *            Scroll Position Top
-	 * @param y
-	 *            Scroll Window Height
 	 * @param w
-	 *            Height of the currently viewable window
+	 *            Scroll Window Height
+	 * @param y
+	 *            Total Content Height
 	 * @param o
 	 *            Width of the document fully rendered
 	 * @param m
 	 *            Max scroll depth during the session
 	 */
-	public static void setPosition(int x, int y, int w, int o) {
+	public static void setPosition(int x, int w, int y, int o) {
 		if (singleton == null)
 			return;
 		synchronized (singleton) {
 			singleton.x = x;
-			singleton.y = y;
 			singleton.w = w;
+			singleton.y = y;
 			singleton.o = o;
 			singleton.m = Math.max(singleton.m, x);
 			singleton.pingParams.addOneTimeParameter("x");
