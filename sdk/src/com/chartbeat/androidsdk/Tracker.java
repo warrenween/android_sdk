@@ -273,7 +273,7 @@ public final class Tracker {
 			if( requiresNewPing ) {
 				timer.restart();
 				timer.unsuspend();
-				timer.alive();
+				timer.alive(true);
 			}
 		}
 	}
@@ -347,9 +347,15 @@ public final class Tracker {
 	}
 
 	private synchronized void userInteractedImpl() {
+		if (DEBUG)
+			Log.d(TAG, "In userInteractedImpl");
 		engagementTracker.userEngaged();
+		if (DEBUG)
+			Log.d(TAG, "Called UserEngaged");
 		userInfo.visited();
-		timer.alive();
+		if (DEBUG)
+			Log.d(TAG, "Called visited");
+		timer.alive(true);
 		if (DEBUG)
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: USER INTERACTED");
 	}
@@ -357,7 +363,7 @@ public final class Tracker {
 	private synchronized void userTypedImpl() {
 		engagementTracker.userTyped();
 		userInfo.visited();
-		timer.alive();
+		timer.alive(true);
 		if (DEBUG)
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: USER TYPED");
 	}
@@ -646,7 +652,11 @@ public final class Tracker {
 	public static void userInteracted() {
 		if (singleton == null)
 			return;
+		if (DEBUG)
+			Log.d(TAG, "Calling UserInteractedImpl");
 		singleton.userInteractedImpl();
+		if (DEBUG)
+			Log.d(TAG, "Called UserInteractedImpl");
 	}
 
 	/**
@@ -694,7 +704,7 @@ public final class Tracker {
 		synchronized (singleton) {
 			singleton.zones = zones;
 			singleton.pingParams.addOneTimeParameter("g2");
-			singleton.timer.alive();
+			singleton.timer.alive(true);
 		}
 	}
 
@@ -711,7 +721,7 @@ public final class Tracker {
 		synchronized (singleton) {
 			singleton.zones = collectionToCommaString(zones);
 			singleton.pingParams.addOneTimeParameter("g2");
-			singleton.timer.alive();
+			singleton.timer.alive(true);
 		}
 	}
 
@@ -729,7 +739,7 @@ public final class Tracker {
 		synchronized (singleton) {
 			singleton.authors = authors;
 			singleton.pingParams.addOneTimeParameter("g1");
-			singleton.timer.alive();
+			singleton.timer.alive(true);
 		}
 	}
 
@@ -746,7 +756,7 @@ public final class Tracker {
 		synchronized (singleton) {
 			singleton.authors = collectionToCommaString(authors);
 			singleton.pingParams.addOneTimeParameter("g1");
-			singleton.timer.alive();
+			singleton.timer.alive(true);
 		}
 	}
 
@@ -764,7 +774,7 @@ public final class Tracker {
 		synchronized (singleton) {
 			singleton.sections = sections;
 			singleton.pingParams.addOneTimeParameter("g0");
-			singleton.timer.alive();
+			singleton.timer.alive(true);
 		}
 	}
 
@@ -781,7 +791,7 @@ public final class Tracker {
 		synchronized (singleton) {
 			singleton.sections = collectionToCommaString(sections);
 			singleton.pingParams.addOneTimeParameter("g0");
-			singleton.timer.alive();
+			singleton.timer.alive(true);
 		}
 	}
 
@@ -796,7 +806,7 @@ public final class Tracker {
 		synchronized (singleton) {
 			singleton.pageLoadTime = pageLoadTime;
 			singleton.pingParams.addOneTimeParameter("b");
-			singleton.timer.alive();
+			singleton.timer.alive(true);
 		}
 	}
 
@@ -830,7 +840,7 @@ public final class Tracker {
 			singleton.pingParams.addOneTimeParameter("w");
 			singleton.pingParams.addOneTimeParameter("o");
 			singleton.pingParams.addOneTimeParameter("m");
-			singleton.timer.alive();
+			singleton.timer.alive(true);
 		}
 	}
 

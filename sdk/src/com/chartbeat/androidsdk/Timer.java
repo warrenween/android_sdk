@@ -45,7 +45,7 @@ public final class Timer {
 	synchronized void restart() {
 		stop();
 		timer = new java.util.Timer("Chartbeat Timer");
-		alive();
+		alive(false);
 		timer.schedule( new MyTimerTask(), 0 );
 	}
 	
@@ -116,9 +116,9 @@ public final class Timer {
 			wasInBackground = true;
 	}
 
-	public synchronized void alive() {
+	public synchronized void alive( boolean shouldRestart ) {
 		lastAlive = System.currentTimeMillis();
-		if( timer == null )
+		if( shouldRestart && timer == null )
 			restart();
 	}
 	
