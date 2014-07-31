@@ -56,7 +56,9 @@ public final class Tracker {
 	 * in the logs.
 	 */
 	public static final boolean DEBUG = false;
+	/** set to true to simulate a very long response to pings (10 seconds) */
 	public static final boolean SIMULATE_VERY_SLOW_SERVER = false;
+
 	private static final long ONE_HOUR = 1 * 60 * 60 * 1000;
 	private static final String USER_AGENT_SUFFIX = "/App";
 	private static final String SDK_NAME = "android";
