@@ -56,6 +56,7 @@ public final class Tracker {
 	 * in the logs.
 	 */
 	public static final boolean DEBUG = true;
+	public static final boolean SIMULATE_VERY_SLOW_SERVER = false;
 	private static final long ONE_HOUR = 1 * 60 * 60 * 1000;
 
 	private enum PingMode {
@@ -376,146 +377,164 @@ public final class Tracker {
 			Log.d(TAG, this.accountId + ":" + this.packageId + ":" + this.host + " :: USER LEFT");
 	}
 
-	synchronized void ping(boolean needsFullPingHint) {
-		if( viewId == null )
-		   return;
-		
-		// decrease the likelihood of getting a 500 back
-		if( needsFullPingHint )
-			pingParams.pingReset();
-
-		boolean isInBackground = ForegroundTracker.isInBackground();
-
+	void ping(boolean needsFullPingHint) {
 		// this is called by the timer on an arbitrary thread.
-		long now = System.currentTimeMillis();
-
+		final long now = System.currentTimeMillis();
+		boolean isInBackground = ForegroundTracker.isInBackground();
 		ArrayList<Pinger.KeyValuePair> parameters = new ArrayList<Pinger.KeyValuePair>(30);
-		addParameterIfRequired(parameters, "h", "Host", host);
-		addParameterIfRequired(parameters, "d", "Real Domain", packageId);
-		addParameterIfRequired(parameters, "p", "Path", viewId);
-		addParameterIfRequired(parameters, "t", "Token", token);
-		addParameterIfRequired(parameters, "u", "User Id", userInfo.getUserId());
-		addParameterIfRequired(parameters, "g", "Account Id", accountId);
+		EngagementData ed;
 
-		if (appReferrer != null)
-			addParameterIfRequired(parameters, "r", "External Referrer", appReferrer);
-		else if (internalReferrer != null)
-			addParameterIfRequired(parameters, "v", "Internal Referrer", internalReferrer);
+		// setup parameters in a synchronized block:
+		synchronized (this) {
+			if (viewId == null)
+				return;
 
-		if (sections != null)
-			addParameterIfRequired(parameters, "g0", "Sections", sections);
-		if (authors != null)
-			addParameterIfRequired(parameters, "g1", "Authors", authors);
-		if (zones != null)
-			addParameterIfRequired(parameters, "g2", "Zones", zones);
+			// decrease the likelihood of getting a 500 back
+			if (needsFullPingHint)
+				pingParams.pingReset();
 
-		if (viewTitle != null)
-			addParameterIfRequired(parameters, "i", "View Title", viewTitle);
+			addParameterIfRequired(parameters, "h", "Host", host);
+			addParameterIfRequired(parameters, "d", "Real Domain", packageId);
+			addParameterIfRequired(parameters, "p", "Path", viewId);
+			addParameterIfRequired(parameters, "t", "Token", token);
+			addParameterIfRequired(parameters, "u", "User Id", userInfo.getUserId());
+			addParameterIfRequired(parameters, "g", "Account Id", accountId);
 
-		addParameterIfRequired(parameters, "n", "New User?", userInfo.isNewUser() ? "1" : "0");
+			if (appReferrer != null)
+				addParameterIfRequired(parameters, "r", "External Referrer", appReferrer);
+			else if (internalReferrer != null)
+				addParameterIfRequired(parameters, "v", "Internal Referrer", internalReferrer);
 
-		addParameterIfRequired(parameters, "f", "Visit Frequency", userInfo.getUserVisitFrequencyString());
+			if (sections != null)
+				addParameterIfRequired(parameters, "g0", "Sections", sections);
+			if (authors != null)
+				addParameterIfRequired(parameters, "g1", "Authors", authors);
+			if (zones != null)
+				addParameterIfRequired(parameters, "g2", "Zones", zones);
 
-		{
-			long timeInCurrentView = now - this.timeCurrentViewStarted;
-			if (timeInCurrentView < 0) // could happen if time is adjusting
-				timeInCurrentView = 0;
-			// calculate time in minutes:
-			double cd = timeInCurrentView / 1000.0; // seconds
-			cd = cd / 60; // minutes
-			// print with one decimal precision:
-			addParameterIfRequired(parameters, "c", "Time on View (m)", String.format(Locale.US, "%.1f", cd));
+			if (viewTitle != null)
+				addParameterIfRequired(parameters, "i", "View Title", viewTitle);
+
+			addParameterIfRequired(parameters, "n", "New User?", userInfo.isNewUser() ? "1" : "0");
+
+			addParameterIfRequired(parameters, "f", "Visit Frequency", userInfo.getUserVisitFrequencyString());
+
+			{
+				long timeInCurrentView = now - this.timeCurrentViewStarted;
+				if (timeInCurrentView < 0) // could happen if time is adjusting
+					timeInCurrentView = 0;
+				// calculate time in minutes:
+				double cd = timeInCurrentView / 1000.0; // seconds
+				cd = cd / 60; // minutes
+				// print with one decimal precision:
+				addParameterIfRequired(parameters, "c", "Time on View (m)", String.format(Locale.US, "%.1f", cd));
+			}
+			addParameterIfRequired(parameters, "S", "Screen Width", String.valueOf(screenWidth));
+			// addParameterIfRequired(parameters, "w", "Window Height",
+			// String.valueOf(windowHeight));
+
+			// although j is listed as "optional", when I only included it at
+			// the
+			// start and when it changed,
+			// I got frequent, spurious 500's.
+			// int decay = timer.expectedNextInterval(isInBackground);
+			// if( decay != timer.getCurrentInterval() || allParameters )
+			addParameterIfRequired(parameters, "j", "Decay", String.valueOf(timer.expectedNextInterval() * 2));
+
+			// only include this if the j, decay time, has not passed since the
+			// last
+			// ping.
+			if (priorToken != null && lastSuccessfulPingTime + lastDecayTime > System.currentTimeMillis())
+				addParameterIfRequired(parameters, "D", "Force Decay", priorToken);
+			lastDecayTime = timer.expectedNextInterval() * 2 * 1000;
+
+			if (pageLoadTime != null)
+				addParameterIfRequired(parameters, "b", "Page Load Time", String.valueOf(pageLoadTime.floatValue()));
+			if (location != null) {
+				addParameterIfRequired(parameters, "lg", "Longitude", String.valueOf(location.getLongitude()));
+				addParameterIfRequired(parameters, "lt", "Latitude", String.valueOf(location.getLatitude()));
+			}
+			addParameterIfRequired(parameters, "V", "SDK Version", SDK_VERSION);
+
+			// engagement keys
+			ed = engagementTracker.ping();
+			parameters.add(new Pinger.KeyValuePair("E", "Engaged Seconds", String.valueOf(ed.totalEngagement)));
+			parameters.add(new Pinger.KeyValuePair("R", "Reading", ed.reading ? "1" : "0"));
+			parameters.add(new Pinger.KeyValuePair("W", "Writing", ed.typed ? "1" : "0"));
+			parameters.add(new Pinger.KeyValuePair("I", "Idle", ed.idle ? "1" : "0"));
+
+			// position keys, x, y, w, o, m
+			if (x != -1)
+				addParameterIfRequired(parameters, "x", "Scroll Position Top", String.valueOf(x));
+			if (y != -1)
+				addParameterIfRequired(parameters, "y", "Content Height", String.valueOf(y));
+			if (w != -1)
+				addParameterIfRequired(parameters, "w", "Scroll Window Height", String.valueOf(w));
+			if (o != -1)
+				addParameterIfRequired(parameters, "o", "Width of document fully rendered", String.valueOf(o));
+			if (m != -1)
+				addParameterIfRequired(parameters, "m", "Max scroll depth durring session", String.valueOf(m));
+
+			// last key must be an empty underscore
+			parameters.add(new Pinger.KeyValuePair("_", "End Marker", ""));
+
+			if (DEBUG) {
+				Log.d(TAG, "PING! User Data: " + parameters);
+				// Log.d(TAG, "PING! User agent " + userAgent );
+			}
 		}
-		addParameterIfRequired(parameters, "S", "Screen Width", String.valueOf(screenWidth));
-		//addParameterIfRequired(parameters, "w", "Window Height", String.valueOf(windowHeight));
-
-		// although j is listed as "optional", when I only included it at the
-		// start and when it changed,
-		// I got frequent, spurious 500's.
-		// int decay = timer.expectedNextInterval(isInBackground);
-		// if( decay != timer.getCurrentInterval() || allParameters )
-		addParameterIfRequired(parameters, "j", "Decay", String.valueOf(timer.expectedNextInterval() * 2));
-
-		// only include this if the j, decay time, has not passed since the last
-		// ping.
-		if (priorToken != null && lastSuccessfulPingTime + lastDecayTime > System.currentTimeMillis())
-			addParameterIfRequired(parameters, "D", "Force Decay", priorToken);
-		lastDecayTime = timer.expectedNextInterval() * 2 * 1000;
-
-		if (pageLoadTime != null)
-			addParameterIfRequired(parameters, "b", "Page Load Time", String.valueOf(pageLoadTime.floatValue()));
-		if (location != null) {
-			addParameterIfRequired(parameters, "lg", "Longitude", String.valueOf(location.getLongitude()));
-			addParameterIfRequired(parameters, "lt", "Latitude", String.valueOf(location.getLatitude()));
-		}
-		addParameterIfRequired(parameters, "V", "SDK Version", SDK_VERSION);
-
-		// engagement keys
-		EngagementData ed = engagementTracker.ping();
-		parameters.add(new Pinger.KeyValuePair("E", "Engaged Seconds", String.valueOf(ed.totalEngagement)));
-		parameters.add(new Pinger.KeyValuePair("R", "Reading", ed.reading ? "1" : "0"));
-		parameters.add(new Pinger.KeyValuePair("W", "Writing", ed.typed ? "1" : "0"));
-		parameters.add(new Pinger.KeyValuePair("I", "Idle", ed.idle ? "1" : "0"));
-
-		// position keys, x, y, w, o, m
-		if (x != -1)
-			addParameterIfRequired(parameters, "x", "Scroll Position Top", String.valueOf(x));
-		if (y != -1)
-			addParameterIfRequired(parameters, "y", "Content Height", String.valueOf(y));
-		if (w != -1)
-			addParameterIfRequired(parameters, "w", "Scroll Window Height", String.valueOf(w));
-		if (o != -1)
-			addParameterIfRequired(parameters, "o", "Width of document fully rendered", String.valueOf(o));
-		if (m != -1)
-			addParameterIfRequired(parameters, "m", "Max scroll depth durring session", String.valueOf(m));
-
-		// last key must be an empty underscore
-		parameters.add(new Pinger.KeyValuePair("_", "End Marker", ""));
-
-		if (DEBUG) {
-			Log.d(TAG, "PING! User Data: " + parameters);
-			// Log.d(TAG, "PING! User agent " + userAgent );
-		}
+		// out of synchronized block, do the actual ping:
 		if (Pinger.isConnected(context)) {
 			boolean exception = false;
 			int code = 0;
 			try {
 				code = pinger.ping(parameters);
+				if( SIMULATE_VERY_SLOW_SERVER ) {
+					try {
+						Thread.sleep(10000);
+					} catch(InterruptedException io) {}
+				}
+			} catch (IOException e) {
+				synchronized( this ) {
+					pingParams.pingError();
+					exception = true;
+					Log.w(TAG, "Error pining chartbeat: " + e);
+				}
+			}
+			synchronized( this ) {
 				pingParams.pingComplete(code);
 				if (DEBUG)
 					Log.d(TAG, "ping returned with: " + code);
-			} catch (IOException e) {
-				pingParams.pingError();
-				exception = true;
-				Log.w(TAG, "Error pining chartbeat: " + e);
-			}
-			if (code == 503) {
-				++sequentialErrors;
-			} else {
-				sequentialErrors = 0;
-			}
-			// System.out.println( sequentialErrors );
-			if (sequentialErrors == 3) {
-				sequentialErrors = 0;
-				pingParams.pingError();
-				timer.suspend();
-			}
-			timer.setInBackground(isInBackground);
-			if (code == 500 || exception || code == 400) {
-				engagementTracker.lastPingFailed(ed);
-				if (code == 400 || code == 500) {
-					timer.retryImmediately();
+				if (code == 503) {
+					++sequentialErrors;
+				} else {
+					sequentialErrors = 0;
+				}
+				// System.out.println( sequentialErrors );
+				if (sequentialErrors == 3) {
+					sequentialErrors = 0;
+					pingParams.pingError();
+					timer.suspend();
+				}
+				timer.setInBackground(isInBackground);
+				if (code == 500 || exception || code == 400) {
+					engagementTracker.lastPingFailed(ed);
+					if (code == 400 || code == 500) {
+						timer.retryImmediately();
+					}
+				}
+				if (code == 200) {
+					lastSuccessfulPingTime = System.currentTimeMillis();
 				}
 			}
-			if (code == 200) {
-				lastSuccessfulPingTime = System.currentTimeMillis();
-			}
 		} else {
-			if (DEBUG) {
-				Log.d(TAG, "Not pinging: no network connection detected.");
+			synchronized( this ) {
+				if (DEBUG) {
+					Log.d(TAG, "Not pinging: no network connection detected.");
+				}
+				pingParams.pingReset();
+				engagementTracker.lastPingFailed(ed);
 			}
-			pingParams.pingReset();
-			engagementTracker.lastPingFailed(ed);
 		}
 	}
 
