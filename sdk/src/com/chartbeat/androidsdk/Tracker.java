@@ -55,9 +55,14 @@ public final class Tracker {
 	/** This can be set to true if you want the tracker to display debugging information
 	 * in the logs.
 	 */
-	public static final boolean DEBUG = true;
+	public static final boolean DEBUG = false;
 	public static final boolean SIMULATE_VERY_SLOW_SERVER = false;
 	private static final long ONE_HOUR = 1 * 60 * 60 * 1000;
+	private static final String USER_AGENT_SUFFIX = "/App";
+	private static final String SDK_NAME = "android";
+	private static final long SDK_SERIAL_VERSION_NUMBER = 4;
+	private static final String SDK_VERSION = SDK_NAME + "_" + SDK_SERIAL_VERSION_NUMBER ;
+	private static final String TAG = "ChartBeat Tracker";
 
 	private enum PingMode {
 		FIRST_PING, STANDARD_PING, FULL_PING, REPING_AFTER_500;
@@ -153,11 +158,6 @@ public final class Tracker {
 		}
 	}
 
-	private static final String USER_AGENT_SUFFIX = "/App";
-	private static final String SDK_NAME = "android";
-	private static final long SDK_SERIAL_VERSION_NUMBER = 2;
-	private static final String SDK_VERSION = SDK_NAME + "_" + SDK_SERIAL_VERSION_NUMBER ;
-	private static final String TAG = "ChartBeat Tracker";
 	private static Tracker singleton;
 
 	private final String accountId, host, packageId, userAgent;
