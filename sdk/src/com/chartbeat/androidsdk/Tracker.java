@@ -55,14 +55,14 @@ public final class Tracker {
 	/** This can be set to true if you want the tracker to display debugging information
 	 * in the logs.
 	 */
-	public static final boolean DEBUG = false;
+	public static boolean DEBUG = false;
 	/** set to true to simulate a very long response to pings (10 seconds) */
 	public static final boolean SIMULATE_VERY_SLOW_SERVER = false;
 
 	private static final long ONE_HOUR = 1 * 60 * 60 * 1000;
 	private static final String USER_AGENT_SUFFIX = "/App";
 	private static final String SDK_NAME = "android";
-	private static final long SDK_SERIAL_VERSION_NUMBER = 4;
+	private static final long SDK_SERIAL_VERSION_NUMBER = 5;
 	private static final String SDK_VERSION = SDK_NAME + "_" + SDK_SERIAL_VERSION_NUMBER ;
 	private static final String TAG = "ChartBeat Tracker";
 

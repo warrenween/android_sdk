@@ -46,7 +46,16 @@ public final class Timer {
 		stop();
 		timer = new java.util.Timer("Chartbeat Timer");
 		alive(false);
-		timer.schedule( new MyTimerTask(), 0 );
+		scheduleNewTaskIfAlive( 0 );
+	}
+	
+	synchronized boolean scheduleNewTaskIfAlive( long when ) {
+		if( timer != null && isAlive() ) {
+			timer.schedule( new MyTimerTask(), when );
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	synchronized void stop() {
@@ -103,9 +112,7 @@ public final class Timer {
 			if( retryImmediately ) {
 				interval = 0;
 			}
-			if( timer != null && isAlive() ) //timer might be null if we are suspended
-				timer.schedule( new MyTimerTask(), interval*MILLISECONDS);
-			else
+			if( !scheduleNewTaskIfAlive( interval*MILLISECONDS ) )
 				stop();
 		}
 	}

@@ -62,6 +62,11 @@ author and section; however the above functions are required. For a complete lis
 well as detailed usage information about the above functions,
 see the Javadocs for `com.chartbeat.androidsdk.Tracker`.
 
+* Debugging: if you wish to see what data is being sent to the server, when and so on,
+in the logs, you can set `com.chartbeat.androidsdk.DEBUG` to `true`. You should set this
+to `true` before your first call to `startTrackerWithAccountId()`abut you can set it
+anytime.
+
 
 **GeoLocation:** If you wish to have the API automatically use
 GEOLocation information, simply include the `android.permission.ACCESS_COARSE_LOCATION`
