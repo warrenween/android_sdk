@@ -82,12 +82,16 @@ zeroed in on the current location. The Location information is updated whenever
 Compiling and Using
 -------------------
 
-You can build a jar of the library by running
+You can build an .aar of the library by running:
 
-    $ant jar
+    $./gradlew clean
+    $./gradlew aR
 
-inside the sdk folder.
+inside the root directory of the project.
 
+The assembled release .aar will be under:
+
+    ./sdk/build/outputs/aar/
 
 Code
 ----
