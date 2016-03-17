@@ -1,0 +1,40 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
+
+    defaultConfig {
+        minSdkVersion 10
+        targetSdkVersion 18
+        versionCode 5
+        versionName "2.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    // Comment out jar file compilations for jCenter or Maven distribution
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+
+    /* Uncomment the following for jCenter or Maven distribution
+    final RETROFIT_VERSION = '2.0.0-beta4'
+    final OKHTTP_VERSION = '3.1.2'
+    final RXJAVA_VERSION = '1.1.1'
+
+    // Http networking
+    compile "com.squareup.retrofit2:retrofit:$RETROFIT_VERSION"
+    compile "com.squareup.retrofit2:adapter-rxjava:$RETROFIT_VERSION"
+    compile "com.squareup.okhttp3:okhttp:$OKHTTP_VERSION"
+    compile "com.squareup.okhttp3:logging-interceptor:$OKHTTP_VERSION"
+
+    // Async reactive extensions
+    compile "io.reactivex:rxjava:$RXJAVA_VERSION"
+    */
+}
