@@ -1,5 +1,8 @@
 apply plugin: 'com.android.library'
 
+group = 'com.chartbeat'
+version = '1.0'
+
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
@@ -19,11 +22,36 @@ android {
     }
 }
 
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'com.chartbeat.androidsdk'
+
+    publishedGroupId = 'com.chartbeat'
+    libraryName = 'chartbeat-android-sdk'
+    artifact = 'chartbeat-android-sdk'
+
+    libraryDescription = 'Chartbeat Android SDK'
+
+    siteUrl = 'https://github.com/chartbeat-labs/android_sdk'
+    gitUrl = 'https://github.com/dcendents/android-maven-gradle-plugin.git'
+
+    libraryVersion = '1.0'
+
+    developerId = 'rmangi'
+    developerName = 'Rick Mangi'
+    developerEmail = 'rick@chartbeat.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
 dependencies {
     // Comment out jar file compilations for jCenter or Maven distribution
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    //compile fileTree(include: ['*.jar'], dir: 'libs')
 
-    /* Uncomment the following for jCenter or Maven distribution
+    // Uncomment the following for jCenter or Maven distribution
     final RETROFIT_VERSION = '2.0.0-beta4'
     final OKHTTP_VERSION = '3.1.2'
     final RXJAVA_VERSION = '1.1.1'
@@ -36,5 +64,8 @@ dependencies {
 
     // Async reactive extensions
     compile "io.reactivex:rxjava:$RXJAVA_VERSION"
-    */
 }
+
+
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
