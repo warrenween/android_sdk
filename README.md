@@ -99,3 +99,16 @@ Code
 The `sdk` folder contains all the code for the sdk and is documented using standard JavaDoc.
 The `testapp` folder contains a test application demonstrating the use of the SDK. The `doc`
 folder contains additional documentation.
+
+Maven/Gradle
+----
+The artifact is hosted on jcenter
+```
+<dependency>
+  <groupId>com.chartbeat</groupId>
+  <artifactId>sdk</artifactId>
+  <version>1.0</version>
+  <type>pom</type>
+</dependency>
+```
+
