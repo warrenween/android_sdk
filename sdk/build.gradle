@@ -1,6 +1,6 @@
 apply plugin: 'com.android.library'
 
-group = 'com.chartbeat'
+group = 'com.chartbeat.sdk'
 version = '1.0'
 
 android {
@@ -29,7 +29,7 @@ ext {
 
     publishedGroupId = 'com.chartbeat'
     libraryName = 'chartbeat-android-sdk'
-    artifact = 'chartbeat-android-sdk'
+    artifact = 'sdk'
 
     libraryDescription = 'Chartbeat Android SDK'
 
