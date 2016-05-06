@@ -30,11 +30,11 @@ final class PingService {
             Random random = new Random();
             int r = random.nextInt(6);
             if( r == 0 ) {
-                Log.w(TAG, "Simulating a fake 400 response." );
+                Logger.w(TAG, "Simulating a fake 400 response." );
                 return Observable.just(400);
             }
             if( r > 2 ) {
-                Log.w(TAG, "Simulating a fake 503 response." );
+                Logger.w(TAG, "Simulating a fake 503 response." );
                 return Observable.just(503);
             }
         }

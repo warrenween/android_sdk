@@ -43,7 +43,7 @@ import java.util.Collection;
 public final class Tracker {
     private static final String TAG = "ChartBeat Tracker";
 
-    public static boolean DEBUG = false;
+    public static boolean DEBUG_MODE = false;
 
     private static Context appContext;
 
@@ -149,7 +149,7 @@ public final class Tracker {
      */
     public static void setAppReferrer(String appReferrer) {
         if (appContext == null) {
-            Log.e(TAG, "Chartbeat SDK has not been initialized");
+            Logger.e(TAG, "Chartbeat SDK has not been initialized");
             return;
         }
 
@@ -412,7 +412,7 @@ public final class Tracker {
      */
     public static void setSections(String sections) {
         if (appContext == null) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
+            Logger.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
             return;
         }
 
@@ -450,12 +450,12 @@ public final class Tracker {
      * */
     public static void setViewLoadTime(float pageLoadTime) {
         if (appContext == null) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
+            Logger.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
             return;
         }
 
         if (pageLoadTime < 0.0f) {
-            Log.e(TAG, "Page load time cannot be negative");
+            Logger.e(TAG, "Page load time cannot be negative");
             return;
         }
 

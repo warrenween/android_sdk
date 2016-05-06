@@ -75,7 +75,7 @@ final class ChartbeatServiceHandler extends Handler {
     private void handleMessageType(String actionType, Bundle bundle) {
 
         if (!isSDKInitialized()) {
-            Log.e(TAG, "Chartbeat SDK has not been initialized");
+            Logger.e(TAG, "Chartbeat SDK has not been initialized");
             return;
         }
 
@@ -185,7 +185,7 @@ final class ChartbeatServiceHandler extends Handler {
 
     public static void setZones(Bundle bundle) {
         if (singleton.isNotTrackingAnyView()) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
+            Logger.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
             return;
         }
         
@@ -195,7 +195,7 @@ final class ChartbeatServiceHandler extends Handler {
 
     public static void setAuthors(Bundle bundle) {
         if (singleton.isNotTrackingAnyView()) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
+            Logger.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
             return;
         }
         String authors = bundle.getString(Tracker.KEY_AUTHORS);
@@ -204,7 +204,7 @@ final class ChartbeatServiceHandler extends Handler {
 
     public static void setSections(Bundle bundle) {
         if (singleton.isNotTrackingAnyView()) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
+            Logger.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
             return;
         }
         String sections = bundle.getString(Tracker.KEY_SECTIONS);
@@ -213,7 +213,7 @@ final class ChartbeatServiceHandler extends Handler {
 
     public static void setViewLoadTime(Bundle bundle) {
         if (singleton.isNotTrackingAnyView()) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
+            Logger.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
             return;
         }
         float viewLoadTime = bundle.getFloat(Tracker.KEY_VIEW_LOADING_TIME, 0.0f);
@@ -222,7 +222,7 @@ final class ChartbeatServiceHandler extends Handler {
 
     public static void setPosition(Bundle bundle) {
         if (singleton == null) {
-            Log.e(TAG, "Chartbeat SDK has not been initialized");
+            Logger.e(TAG, "Chartbeat SDK has not been initialized");
             return;
         }
         int scrollPositionTop = bundle.getInt(Tracker.KEY_POSITION_TOP, -1);

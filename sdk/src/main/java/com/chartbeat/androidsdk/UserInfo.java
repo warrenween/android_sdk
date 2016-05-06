@@ -81,7 +81,7 @@ final class UserInfo {
         try {
             creationDate.setTime(DATE_FORMAT.parse(createdDateString));
         } catch( ParseException pe ) {
-            Log.e(TAG, "Date created has become corrupt: " + createdDateString );
+            Logger.e(TAG, "Date created has become corrupt: " + createdDateString );
             creationDate = today();
         }
 
@@ -99,7 +99,7 @@ final class UserInfo {
         GregorianCalendar startDate = today();
         startDate.add(GregorianCalendar.DATE, -DAYS_TO_TRACK_VISITS);
 
-        Logger.log(TAG, "Retrieving user visited dates: " + storedVisits);
+        Logger.d(TAG, "Retrieving user visited dates: " + storedVisits);
 
         String[] visitStrings = storedVisits.split(",");
 
@@ -113,7 +113,7 @@ final class UserInfo {
                 }
 
             } catch (ParseException e) {
-                Log.w(TAG, "error reading date in user info: " + e );
+                Logger.e(TAG, "error reading date in user info: " + e );
             }
         }
 
@@ -149,7 +149,7 @@ final class UserInfo {
 		GregorianCalendar visitDate = today();
 		if(visitedDates.add(visitDate)) {
             String encodedDateString = encodeVisitDates(visitedDates);
-			Logger.log(TAG, "Storing user visited dates: " + encodedDateString);
+			Logger.d(TAG, "Storing user visited dates: " + encodedDateString);
 			SharedPreferences.Editor editor = prefs.edit();
 			editor.putString(KEY_USER_LAST_VISIT_TIME_BY_ID + userID, encodedDateString);
 			editor.commit();

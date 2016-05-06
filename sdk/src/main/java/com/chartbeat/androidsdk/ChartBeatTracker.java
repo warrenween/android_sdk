@@ -63,7 +63,7 @@ final class ChartBeatTracker {
 
 		this.pingParams = new PingParams();
 
-        Logger.log(TAG, appInfo.toString());
+        Logger.d(TAG, appInfo.toString());
 	}
     
     synchronized void stopTracker() {
@@ -109,7 +109,7 @@ final class ChartBeatTracker {
         currentViewTracker = new ViewTracker(viewId, viewTitle, internalReferral, generatedToken, viewDimension);
         pingParams.newView();
 
-        Logger.log(TAG, appInfo.toString() + " :: TRACK VIEW :: " + viewId);
+        Logger.d(TAG, appInfo.toString() + " :: TRACK VIEW :: " + viewId);
 
         this.pingParams.addOneTimeParameter(QueryKeys.SCROLL_POSITION_TOP);
         this.pingParams.addOneTimeParameter(QueryKeys.CONTENT_HEIGHT);
@@ -124,9 +124,7 @@ final class ChartBeatTracker {
 
 	private synchronized void updateLocation() {
         locationService.updateLocation(context.get());
-
-		// Log.w(TAG, "BEST: " + location );
-		pingParams.addOneTimeParameter(QueryKeys.LONGITUDE);
+        pingParams.addOneTimeParameter(QueryKeys.LONGITUDE);
 		pingParams.addOneTimeParameter(QueryKeys.LATITUDE);
 	}
 
@@ -135,21 +133,21 @@ final class ChartBeatTracker {
         userInfo.visited();
         pingManager.alive();
 
-        Logger.log(TAG, appInfo.toString() + " :: USER INTERACTED");
+        Logger.d(TAG, appInfo.toString() + " :: USER INTERACTED");
 	}
 
     synchronized void userTypedImpl() {
         engagementTracker.userTyped();
         userInfo.visited();
         pingManager.alive();
-        Logger.log(TAG, appInfo.toString() + " :: USER TYPED");
+        Logger.d(TAG, appInfo.toString() + " :: USER TYPED");
 	}
 
     synchronized void userLeftViewImpl(String viewId) {
         ForegroundTracker.activityEnded();
         pingManager.setInBackground(true);
         engagementTracker.userLeftView();
-        Logger.log(TAG, appInfo.toString() + " :: USER LEFT");
+        Logger.d(TAG, appInfo.toString() + " :: USER LEFT");
 	}
 
     synchronized void updateViewDimensions(final int scrollPositionTop,
@@ -246,7 +244,7 @@ final class ChartBeatTracker {
 			// last key must be an empty underscore
 			parameters.put(QueryKeys.END_MARKER, "");
 
-            Logger.log(TAG, "PING! User Data: " + parameters);
+            Logger.d(TAG, "PING! User Data: " + parameters);
         }
 		// out of synchronized block, do the actual ping:
 		if (SystemUtils.isNetworkAvailable(context.get())) {
@@ -286,7 +284,7 @@ final class ChartBeatTracker {
                     });
 		} else {
 			synchronized( this ) {
-                Logger.log(TAG, "Not pinging: no network connection detected.");
+                Logger.e(TAG, "Not pinging: no network connection detected.");
 				pingParams.pingReset();
 				engagementTracker.lastPingFailed(engagementData);
 			}
@@ -324,7 +322,7 @@ final class ChartBeatTracker {
 
     private void handlePingError(String errorMessage, EngagementTracker.EngagementData engagementData) {
         pingParams.pingError();
-        Log.w(TAG, "Error pinging Chartbeat: " + errorMessage);
+        Logger.e(TAG, "Error pinging Chartbeat: " + errorMessage);
         engagementTracker.lastPingFailed(engagementData);
     }
 

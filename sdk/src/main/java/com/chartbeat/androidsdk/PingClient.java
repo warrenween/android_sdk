@@ -1,7 +1,5 @@
 package com.chartbeat.androidsdk;
 
-import android.util.Log;
-
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -37,7 +35,7 @@ class PingClient {
         HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
             @Override
             public void log(String message) {
-                Logger.log(TAG, message);
+                Logger.d(TAG, message);
             }
         });
 
