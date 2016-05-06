@@ -35,7 +35,6 @@ final class ChartBeatTracker {
 
     private PingParams pingParams;
     
-	public static boolean DEBUG = true;
 	/** set to true to simulate a very long response to pings (10 seconds) */
 	public static final boolean SIMULATE_VERY_SLOW_SERVER = false;
 
@@ -64,9 +63,7 @@ final class ChartBeatTracker {
 
 		this.pingParams = new PingParams();
 
-		if (DEBUG) {
-            Log.d(TAG, appInfo.toString());
-        }
+        Logger.log(TAG, appInfo.toString());
 	}
     
     synchronized void stopTracker() {
@@ -112,9 +109,7 @@ final class ChartBeatTracker {
         currentViewTracker = new ViewTracker(viewId, viewTitle, internalReferral, generatedToken, viewDimension);
         pingParams.newView();
 
-        if (DEBUG) {
-            Log.d(TAG, appInfo.toString() + " :: TRACK VIEW :: " + viewId);
-        }
+        Logger.log(TAG, appInfo.toString() + " :: TRACK VIEW :: " + viewId);
 
         this.pingParams.addOneTimeParameter(QueryKeys.SCROLL_POSITION_TOP);
         this.pingParams.addOneTimeParameter(QueryKeys.CONTENT_HEIGHT);
