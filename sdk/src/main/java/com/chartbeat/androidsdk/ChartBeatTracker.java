@@ -135,27 +135,21 @@ final class ChartBeatTracker {
         userInfo.visited();
         pingManager.alive();
 
-        if (DEBUG) {
-            Log.d(TAG, appInfo.toString() + " :: USER INTERACTED");
-        }
+        Logger.log(TAG, appInfo.toString() + " :: USER INTERACTED");
 	}
 
     synchronized void userTypedImpl() {
         engagementTracker.userTyped();
         userInfo.visited();
         pingManager.alive();
-        if (DEBUG) {
-            Log.d(TAG, appInfo.toString() + " :: USER TYPED");
-        }
+        Logger.log(TAG, appInfo.toString() + " :: USER TYPED");
 	}
 
     synchronized void userLeftViewImpl(String viewId) {
         ForegroundTracker.activityEnded();
         pingManager.setInBackground(true);
         engagementTracker.userLeftView();
-        if (DEBUG) {
-            Log.d(TAG, appInfo.toString() + " :: USER LEFT");
-        }
+        Logger.log(TAG, appInfo.toString() + " :: USER LEFT");
 	}
 
     synchronized void updateViewDimensions(final int scrollPositionTop,
@@ -252,9 +246,7 @@ final class ChartBeatTracker {
 			// last key must be an empty underscore
 			parameters.put(QueryKeys.END_MARKER, "");
 
-			if (DEBUG) {
-				Log.d(TAG, "PING! User Data: " + parameters);
-			}
+            Logger.log(TAG, "PING! User Data: " + parameters);
         }
 		// out of synchronized block, do the actual ping:
 		if (SystemUtils.isNetworkAvailable(context.get())) {
@@ -294,9 +286,7 @@ final class ChartBeatTracker {
                     });
 		} else {
 			synchronized( this ) {
-				if (DEBUG) {
-					Log.d(TAG, "Not pinging: no network connection detected.");
-				}
+                Logger.log(TAG, "Not pinging: no network connection detected.");
 				pingParams.pingReset();
 				engagementTracker.lastPingFailed(engagementData);
 			}

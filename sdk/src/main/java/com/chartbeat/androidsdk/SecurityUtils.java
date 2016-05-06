@@ -15,7 +15,7 @@ final class SecurityUtils {
 	 * creates a high-entropy string of length numChars according that is
 	 * safe to use in the Chartbeat API.
 	 */
-	public static synchronized String randomChars(int numchars) {
+	static synchronized String randomChars(int numchars) {
 		// make sure the user requested at least one char:
 		if( numchars <= 0 )
 			throw new RuntimeException("need at least one character");

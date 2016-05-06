@@ -99,7 +99,7 @@ final class UserInfo {
         GregorianCalendar startDate = today();
         startDate.add(GregorianCalendar.DATE, -DAYS_TO_TRACK_VISITS);
 
-        Log.d(TAG, "Retrieving user visited dates: " + storedVisits);
+        Logger.log(TAG, "Retrieving user visited dates: " + storedVisits);
 
         String[] visitStrings = storedVisits.split(",");
 
@@ -149,7 +149,7 @@ final class UserInfo {
 		GregorianCalendar visitDate = today();
 		if(visitedDates.add(visitDate)) {
             String encodedDateString = encodeVisitDates(visitedDates);
-			Log.d(TAG, "Storing user visited dates: " + encodedDateString);
+			Logger.log(TAG, "Storing user visited dates: " + encodedDateString);
 			SharedPreferences.Editor editor = prefs.edit();
 			editor.putString(KEY_USER_LAST_VISIT_TIME_BY_ID + userID, encodedDateString);
 			editor.commit();

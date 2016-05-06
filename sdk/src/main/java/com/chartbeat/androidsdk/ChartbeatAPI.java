@@ -16,5 +16,4 @@ interface ChartbeatAPI {
 
     @GET("ping")
     Observable<Response<Void>> ping(@QueryMap Map<String, String> parameters);
-
 }

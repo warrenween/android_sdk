@@ -20,12 +20,12 @@ final class PingService {
 
     private ChartbeatAPI api;
 
-    public PingService(String userAgent) {
+    PingService(String userAgent) {
         PingClient client = new PingClient(ChartbeatAPI.ENDPOINT, ChartbeatAPI.HOST, userAgent);
         api = client.createService(ChartbeatAPI.class);
     }
 
-    public Observable<Integer> ping(final LinkedHashMap<String, String> queries) {
+    Observable<Integer> ping(final LinkedHashMap<String, String> queries) {
         if( TEST_RANDOM_FAILURES ) {
             Random random = new Random();
             int r = random.nextInt(6);

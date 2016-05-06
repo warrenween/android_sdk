@@ -19,7 +19,7 @@ import java.lang.reflect.Constructor;
 final class SystemUtils {
     private static final String USER_AGENT_SUFFIX = "/App";
 
-    public static boolean isNetworkAvailable(Context context) {
+    static boolean isNetworkAvailable(Context context) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         if (cm == null) {
@@ -35,7 +35,7 @@ final class SystemUtils {
      * @param context
      * @return
      */
-    public static String getSystemUserAgent(Context context) {
+    static String getSystemUserAgent(Context context) {
         String userAgent;
 
         if (Build.VERSION.SDK_INT >= 17) {
@@ -68,7 +68,7 @@ final class SystemUtils {
     /**
      * Get screen size for API level < 17
      */
-    public static Point getScreenSize(Context context) {
+    static Point getScreenSize(Context context) {
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
         Point size = new Point();
