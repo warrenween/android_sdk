@@ -54,7 +54,7 @@ final class AppInfo {
     }
 
     public String toString() {
-        return this.accountID + ":" + this.packageName + ":" + this.host;
+        return "Chartbeat tracking SDK (" + SDK_VERSION + "): " + this.accountID + "|" + this.packageName + "|" + this.host;
     }
 
     LinkedHashMap<String, String> toPingParams() {
