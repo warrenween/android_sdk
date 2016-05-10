@@ -483,13 +483,13 @@ public final class Tracker {
 
     public static void didInit() {
         if (appContext == null && TextUtils.isEmpty(accountID)) {
-            throw new RuntimeException("Chartbeat: SDK has not been initialized");
+            throw new IllegalStateException("Chartbeat: SDK has not been initialized with an Account ID");
         }
     }
 
     public static void didStartTracking() {
         if (appContext == null) {
-            throw new RuntimeException("Chartbeat: View tracking hasn't started, please call Tracker.trackView() in onResume() first");
+            throw new IllegalStateException("Chartbeat: View tracking hasn't started, please call Tracker.trackView() in onResume() first");
         }
     }
 }

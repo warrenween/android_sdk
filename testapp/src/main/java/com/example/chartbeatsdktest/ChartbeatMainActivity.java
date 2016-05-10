@@ -29,7 +29,6 @@ public class ChartbeatMainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_chartbeat_main);
 		Tracker.DEBUG_MODE = true;
-		Tracker.startTrackerWithAccountId("54876", this);
 		final MainScrollView msv = (MainScrollView) getWindow().getDecorView().findViewById(R.id.scrollView1);
 		msv.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
