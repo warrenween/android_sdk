@@ -3,7 +3,6 @@ package com.chartbeat.androidsdk;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.util.LinkedHashMap;

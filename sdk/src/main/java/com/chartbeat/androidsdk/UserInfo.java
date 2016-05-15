@@ -2,7 +2,6 @@ package com.chartbeat.androidsdk;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

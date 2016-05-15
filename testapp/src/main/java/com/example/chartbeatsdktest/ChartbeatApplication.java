@@ -1,8 +1,6 @@
 package com.example.chartbeatsdktest;
 
 import android.app.Application;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 
 import com.chartbeat.androidsdk.Tracker;
 

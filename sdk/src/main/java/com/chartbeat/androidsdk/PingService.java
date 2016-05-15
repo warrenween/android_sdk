@@ -1,7 +1,5 @@
 package com.chartbeat.androidsdk;
 
-import android.util.Log;
-
 import java.util.LinkedHashMap;
 import java.util.Random;
 

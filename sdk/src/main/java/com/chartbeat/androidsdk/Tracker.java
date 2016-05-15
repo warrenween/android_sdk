@@ -7,7 +7,6 @@ package com.chartbeat.androidsdk;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
-import android.util.Log;
 
 import java.util.Collection;
 
