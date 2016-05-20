@@ -6,7 +6,7 @@ import java.util.Collection;
  * Created by Mike Dai Wang on 2016-02-04.
  */
 final class StringUtils {
-    public static String collectionToCommaString(Collection<String> col) {
+    static String collectionToCommaString(Collection<String> col) {
         if (col == null || col.size() == 0) {
             return null;
         }

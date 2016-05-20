@@ -1,8 +1,8 @@
 package com.example.chartbeatsdktest;
 
-import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -28,8 +28,7 @@ public class ChartbeatMainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_chartbeat_main);
-		Tracker.DEBUG = true;
-		Tracker.startTrackerWithAccountId("54876", this);
+		Tracker.DEBUG_MODE = true;
 		final MainScrollView msv = (MainScrollView) getWindow().getDecorView().findViewById(R.id.scrollView1);
 		msv.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override

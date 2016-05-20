@@ -1,7 +1,5 @@
 package com.chartbeat.androidsdk;
 
-import android.util.Log;
-
 import java.util.LinkedHashMap;
 import java.util.Random;
 
@@ -20,21 +18,21 @@ final class PingService {
 
     private ChartbeatAPI api;
 
-    public PingService(String userAgent) {
+    PingService(String userAgent) {
         PingClient client = new PingClient(ChartbeatAPI.ENDPOINT, ChartbeatAPI.HOST, userAgent);
         api = client.createService(ChartbeatAPI.class);
     }
 
-    public Observable<Integer> ping(final LinkedHashMap<String, String> queries) {
+    Observable<Integer> ping(final LinkedHashMap<String, String> queries) {
         if( TEST_RANDOM_FAILURES ) {
             Random random = new Random();
             int r = random.nextInt(6);
             if( r == 0 ) {
-                Log.w(TAG, "Simulating a fake 400 response." );
+                Logger.w(TAG, "Simulating a fake 400 response." );
                 return Observable.just(400);
             }
             if( r > 2 ) {
-                Log.w(TAG, "Simulating a fake 503 response." );
+                Logger.w(TAG, "Simulating a fake 503 response." );
                 return Observable.just(503);
             }
         }

@@ -18,8 +18,9 @@ import java.lang.reflect.Constructor;
  */
 final class SystemUtils {
     private static final String USER_AGENT_SUFFIX = "/App";
+    private static final String DEFAULT_USER_AGENT = "ANDROID";
 
-    public static boolean isNetworkAvailable(Context context) {
+    static boolean isNetworkAvailable(Context context) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         if (cm == null) {
@@ -35,24 +36,28 @@ final class SystemUtils {
      * @param context
      * @return
      */
-    public static String getSystemUserAgent(Context context) {
+    static String getSystemUserAgent(Context context) {
         String userAgent;
 
-        if (Build.VERSION.SDK_INT >= 17) {
-            userAgent = NewApiWrapper.getDefaultUserAgent(context);
-        } else {
-            try {
-                Constructor<WebSettings> constructor = WebSettings.class.getDeclaredConstructor(Context.class, WebView.class);
-                constructor.setAccessible(true);
+        try {
+            if (Build.VERSION.SDK_INT >= 17) {
+                userAgent = NewApiWrapper.getDefaultUserAgent(context);
+            } else {
                 try {
-                    WebSettings settings = constructor.newInstance(context, null);
-                    userAgent = settings.getUserAgentString();
-                } finally {
-                    constructor.setAccessible(false);
+                    Constructor<WebSettings> constructor = WebSettings.class.getDeclaredConstructor(Context.class, WebView.class);
+                    constructor.setAccessible(true);
+                    try {
+                        WebSettings settings = constructor.newInstance(context, null);
+                        userAgent = settings.getUserAgentString();
+                    } finally {
+                        constructor.setAccessible(false);
+                    }
+                } catch (Exception e) {
+                    userAgent = new WebView(context).getSettings().getUserAgentString();
                 }
-            } catch (Exception e) {
-                userAgent = new WebView(context).getSettings().getUserAgentString();
             }
+        } catch (Exception e) {
+            userAgent = DEFAULT_USER_AGENT;
         }
 
         return userAgent + USER_AGENT_SUFFIX;
@@ -68,7 +73,7 @@ final class SystemUtils {
     /**
      * Get screen size for API level < 17
      */
-    public static Point getScreenSize(Context context) {
+    static Point getScreenSize(Context context) {
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
         Point size = new Point();

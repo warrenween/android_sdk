@@ -1,10 +1,11 @@
 package com.example.chartbeatsdktest;
 
-import com.chartbeat.androidsdk.Tracker;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.ScrollView;
+
+import com.chartbeat.androidsdk.Tracker;
 
 public final class MainScrollView extends ScrollView {
 	private static final String TAG = "Chartbeat scrollbar";

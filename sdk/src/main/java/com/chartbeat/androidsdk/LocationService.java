@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
-import android.util.Log;
 
 import java.util.LinkedHashMap;
 
@@ -21,7 +20,7 @@ final class LocationService {
 
     void updateLocation(Context context) {
         if (!isLocationPermissionEnabled(context)) {
-            Log.w(TAG, "Location unavailable. Try requesting ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION");
+            Logger.w(TAG, "Location unavailable. Try requesting ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION");
             return;
         }
 
@@ -58,7 +57,7 @@ final class LocationService {
                 }
             }
         } catch (SecurityException se) {
-            Log.w(TAG, "Location unavailable. Try requesting ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION");
+            Logger.w(TAG, "Location unavailable. Try requesting ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION");
         }
 
         return location;

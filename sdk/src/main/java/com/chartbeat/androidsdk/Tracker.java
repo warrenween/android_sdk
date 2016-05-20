@@ -6,7 +6,7 @@ package com.chartbeat.androidsdk;
 
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
+import android.text.TextUtils;
 
 import java.util.Collection;
 
@@ -43,9 +43,10 @@ import java.util.Collection;
 public final class Tracker {
     private static final String TAG = "ChartBeat Tracker";
 
-    public static boolean DEBUG = false;
+    public static boolean DEBUG_MODE = false;
 
     private static Context appContext;
+    private static String accountID;
 
     static final String KEY_SDK_ACTION_TYPE = "KEY_SDK_ACTION_TYPE";
 
@@ -127,6 +128,7 @@ public final class Tracker {
 
     private static void startSDK(String accountID, String customHost, Context context) {
         appContext = context.getApplicationContext();
+        Tracker.accountID = accountID;
 
         Intent intent = new Intent(context.getApplicationContext(), ChartbeatService.class);
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_INIT_TRACKER);
@@ -148,10 +150,7 @@ public final class Tracker {
      *            the string representing the appReferrer.
      */
     public static void setAppReferrer(String appReferrer) {
-        if (appContext == null) {
-            Log.e(TAG, "Chartbeat SDK has not been initialized");
-            return;
-        }
+        didInit();
 
         Intent intent = new Intent(appContext, ChartbeatService.class);
         
@@ -189,6 +188,8 @@ public final class Tracker {
      *            the title of the view. may be null.
      */
     public static void trackView(Context context, String viewId, String viewTitle) {
+        didInit();
+
         if (context == null) {
             throw new NullPointerException("context cannot be null");
         }
@@ -235,6 +236,8 @@ public final class Tracker {
     public static void trackView(Context context, String viewId, String viewTitle,
                                  int scrollPositionTop, int scrollWindowHeight,
                                  int totalContentHeight, int fullyRenderedDocWidth) {
+        didInit();
+
         if (context == null) {
             throw new NullPointerException("context cannot be null");
         }
@@ -268,10 +271,8 @@ public final class Tracker {
      * initialized, this call will be ignored.
      */
     public static void userLeftView(String viewId) {
-        if (appContext == null) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
-            return;
-        }
+        didInit();
+        didStartTracking();
 
         if (viewId == null) {
             throw new NullPointerException("viewId cannot be null");
@@ -291,10 +292,8 @@ public final class Tracker {
      * put this in your onUserInteraction() function of your activity.
      */
     public static void userInteracted() {
-        if (appContext == null) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
-            return;
-        }
+        didInit();
+        didStartTracking();
 
         Intent intent = new Intent(appContext, ChartbeatService.class);
         
@@ -308,10 +307,8 @@ public final class Tracker {
      * been initialized, this call will be ignored.
      */
     public static void userTyped() {
-        if (appContext == null) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
-            return;
-        }
+        didInit();
+        didStartTracking();
 
         Intent intent = new Intent(appContext, ChartbeatService.class);
         
@@ -329,10 +326,8 @@ public final class Tracker {
      *            a comma-delimited list of zones.
      */
     public static void setZones(String zones) {
-        if (appContext == null) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
-            return;
-        }
+        didInit();
+        didStartTracking();
 
         setZonesImpl(zones);
     }
@@ -345,15 +340,15 @@ public final class Tracker {
      * @param zones
      */
     public static void setZones(Collection<String> zones) {
-        if (appContext == null) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
-            return;
-        }
+        didInit();
+        didStartTracking();
 
         setZonesImpl(StringUtils.collectionToCommaString(zones));
     }
 
     private static void setZonesImpl(String zones) {
+        didInit();
+
         Intent intent = new Intent(appContext, ChartbeatService.class);
         
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_SET_ZONES);
@@ -370,10 +365,8 @@ public final class Tracker {
      *            a comma-delimited list of authors.
      */
     public static void setAuthors(String authors) {
-        if (appContext == null) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
-            return;
-        }
+        didInit();
+        didStartTracking();
 
         setAuthorsImpl(authors);
     }
@@ -386,10 +379,8 @@ public final class Tracker {
      * @param authors
      */
     public static void setAuthors(Collection<String> authors) {
-        if (appContext == null) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
-            return;
-        }
+        didInit();
+        didStartTracking();
 
         setAuthorsImpl(StringUtils.collectionToCommaString(authors));
     }
@@ -411,10 +402,8 @@ public final class Tracker {
      *            a comma-delimited list of sections.
      */
     public static void setSections(String sections) {
-        if (appContext == null) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
-            return;
-        }
+        didInit();
+        didStartTracking();
 
         setSectionsImpl(sections);
     }
@@ -427,10 +416,8 @@ public final class Tracker {
      * @param sections
      */
     public static void setSections(Collection<String> sections) {
-        if (appContext == null) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
-            return;
-        }
+        didInit();
+        didStartTracking();
 
         setSectionsImpl(StringUtils.collectionToCommaString(sections));
     }
@@ -449,13 +436,11 @@ public final class Tracker {
      * calling trackView().
      * */
     public static void setViewLoadTime(float pageLoadTime) {
-        if (appContext == null) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
-            return;
-        }
+        didInit();
+        didStartTracking();
 
         if (pageLoadTime < 0.0f) {
-            Log.e(TAG, "Page load time cannot be negative");
+            Logger.e(TAG, "Page load time cannot be negative");
             return;
         }
 
@@ -481,10 +466,8 @@ public final class Tracker {
      *            Width of the document fully rendered
      */
     public static void setPosition(int scrollPositionTop, int scrollWindowHeight, int totalContentHeight, int fullyRenderedDocWidth) {
-        if (appContext == null) {
-            Log.e(TAG, "View tracking hasn't started, please call Tracker.trackView() in onResume() first");
-            return;
-        }
+        didInit();
+        didStartTracking();
 
         Intent intent = new Intent(appContext, ChartbeatService.class);
         
@@ -495,5 +478,17 @@ public final class Tracker {
         intent.putExtra(KEY_CONTENT_HEIGHT, totalContentHeight);
         intent.putExtra(KEY_DOC_WIDTH, fullyRenderedDocWidth);
         appContext.startService(intent);
+    }
+
+    public static void didInit() {
+        if (appContext == null && TextUtils.isEmpty(accountID)) {
+            throw new IllegalStateException("Chartbeat: SDK has not been initialized with an Account ID");
+        }
+    }
+
+    public static void didStartTracking() {
+        if (appContext == null) {
+            throw new IllegalStateException("Chartbeat: View tracking hasn't started, please call Tracker.trackView() in onResume() first");
+        }
     }
 }

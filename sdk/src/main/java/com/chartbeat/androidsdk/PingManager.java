@@ -2,7 +2,6 @@ package com.chartbeat.androidsdk;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
 import java.util.concurrent.TimeUnit;
 
@@ -167,7 +166,7 @@ final class PingManager {
             wasInBackground = false;
         } catch (Exception e) {
             //we catch all exceptions to ensure that we can reschedule the next run.
-            Log.e(TAG, "Problem executing: " + e.getLocalizedMessage());
+            Logger.e(TAG, "Problem executing: " + e.getLocalizedMessage());
             e.printStackTrace();
         }
     }

@@ -1,21 +1,20 @@
 package com.example.chartbeatsdktest;
 
-import java.util.HashSet;
-
-import com.chartbeat.androidsdk.Tracker;
-import com.example.chartbeatsdktest.R;
-
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.app.Activity;
+import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.RadioButton;
-import android.support.v4.app.NavUtils;
-import android.annotation.TargetApi;
-import android.os.Build;
+
+import com.chartbeat.androidsdk.Tracker;
+
+import java.util.HashSet;
 
 public class AltActivity extends Activity {
 	private static final String VIEW_ID = "ANOTHER_VIEW_ID";
