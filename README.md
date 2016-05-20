@@ -107,7 +107,7 @@ The artifact is hosted on jcenter
 <dependency>
   <groupId>com.chartbeat</groupId>
   <artifactId>sdk</artifactId>
-  <version>1.0</version>
+  <version>1.1</version>
   <type>pom</type>
 </dependency>
 ```
