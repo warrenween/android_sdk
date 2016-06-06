@@ -52,9 +52,9 @@ dependencies {
     //compile fileTree(include: ['*.jar'], dir: 'libs')
 
     // Uncomment the following for jCenter or Maven distribution
-    final RETROFIT_VERSION = '2.0.0-beta4'
-    final OKHTTP_VERSION = '3.1.2'
-    final RXJAVA_VERSION = '1.1.1'
+    final RETROFIT_VERSION = '2.0.2'
+    final OKHTTP_VERSION = '3.3.1'
+    final RXJAVA_VERSION = '1.1.5'
 
     // Http networking
     compile "com.squareup.retrofit2:retrofit:$RETROFIT_VERSION"
