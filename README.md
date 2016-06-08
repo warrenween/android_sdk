@@ -93,6 +93,25 @@ The assembled release .aar will be under:
 
     ./sdk/build/outputs/aar/
 
+
+Releasing
+---------
+
+The library is released on bintray. To cut a release you will need to create a local.properties
+with your android.sdk location and your bintray credentials.
+
+
+    sdk.dir=/Users/rick/Library/Android/sdk/
+    bintray.user=rmangi
+    bintray.apikey=<apikey>
+    bintray.gpg.password=<pass>
+
+Then you can build as above and run
+
+    ./gradlew bintrayUpload
+
+You should also bump the version number in sdk/build.gradle
+
 Code
 ----
 
