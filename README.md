@@ -122,12 +122,5 @@ folder contains additional documentation.
 Maven/Gradle
 ----
 The artifact is hosted on jcenter
-```
-<dependency>
-  <groupId>com.chartbeat</groupId>
-  <artifactId>sdk</artifactId>
-  <version>1.2</version>
-  <type>pom</type>
-</dependency>
-```
 
+[ ![Download](https://api.bintray.com/packages/rmangi/maven/com.chartbeat.androidsdk/images/download.svg) ](https://bintray.com/rmangi/maven/com.chartbeat.androidsdk/_latestVersion)
