@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 group = 'com.chartbeat.sdk'
-version = '1.2'
+version = '1.2.1'
 
 android {
     compileSdkVersion 23
@@ -36,7 +36,7 @@ ext {
     siteUrl = 'https://github.com/chartbeat-labs/android_sdk'
     gitUrl = 'https://github.com/dcendents/android-maven-gradle-plugin.git'
 
-    libraryVersion = '1.2'
+    libraryVersion = '1.2.1'
 
     developerId = 'rmangi'
     developerName = 'Rick Mangi'
