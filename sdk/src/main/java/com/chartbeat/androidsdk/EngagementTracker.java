@@ -71,8 +71,8 @@ final class EngagementTracker {
 
     private static final class EngagementTask extends TimerTask {
         private static final int SECOND = 1000;
-        private static final int ENGAGEMENT_WINDOW = 5 * SECOND; //default to 5 until we get info from the server otherwise.
-        private static final int INITIAL_ENGAGEMENT_WINDOW = 5 * SECOND; //user is always considered engaged for the first 5 seconds.
+        private static final int ENGAGEMENT_WINDOW = 5 * SECOND;
+        private static final int INITIAL_ENGAGEMENT_WINDOW = 5 * SECOND;
 
         private final long startTime;
         private long lastEngagedTime = 0;
@@ -89,6 +89,10 @@ final class EngagementTracker {
             long now = System.currentTimeMillis();
             long engagedPeriod = now - lastEngagedTime;
             long engagedTimeSinceEnteringView = now - startTime;
+
+            // Check against the 5 second engagement window
+            // Note the engagement check period is ENGAGEMENT_CHECK_PERIOD (1 second)
+            // Only increment the engagement count if the latest engagement is within the window
             if (engagedPeriod < ENGAGEMENT_WINDOW || engagedTimeSinceEnteringView < INITIAL_ENGAGEMENT_WINDOW) {
                 totalEngagementCount.incrementAndGet();
             }
