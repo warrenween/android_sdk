@@ -22,6 +22,7 @@ final class PingManager {
 	private static final long MAX_SDK_RUN_TIME = 2 * HOUR; //after two hours of inactivity we shut down
 	private static final long SERVER_BUSY_WAIT_WINDOW = 10 * MINUTE; //suspension is after the server rejects us due to too many clients.
     private static final int DEFAULT_PING_INTERVAL_IN_SECONDS = 15;
+    private static final int DEFAULT_PING_DECAY = DEFAULT_PING_INTERVAL_IN_SECONDS * 2;
     private static final String DEFAULT_EXIT_VIEW_DECAY_TIME_IN_SECONDS = "90";
 
     private final ChartBeatTracker tracker;
@@ -161,7 +162,7 @@ final class PingManager {
                 return;
             }
 
-            int decayTime = pingInterval * 2;
+            int decayTime = DEFAULT_PING_DECAY;
             tracker.ping(wasInBackground, String.valueOf(decayTime));
             wasInBackground = false;
         } catch (Exception e) {

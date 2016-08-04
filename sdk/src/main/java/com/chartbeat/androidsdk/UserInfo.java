@@ -5,11 +5,17 @@ import android.content.SharedPreferences;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Observable;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
+
+import rx.Observer;
+import rx.schedulers.Schedulers;
 
 /**
  * @author bjorn
@@ -19,7 +25,10 @@ import java.util.TreeSet;
 final class UserInfo {
 	private static final String TAG = "Chartbeat userdata";
 
+    private static final int USER_ID_CHAR_LENGTH = 18;
     private static final int DAYS_TO_TRACK_VISITS = 16;
+    private static final int DAYS_TO_REMEMBER_USER = 30;
+    private static final int MINUTES_TO_TRACK_NEW_USER = 30;
 
     private static final String KEY_USER_ID = "userid";
     private static final String KEY_USER_CREATION_BY_ID = "created-";
@@ -52,7 +61,40 @@ final class UserInfo {
             isNewUser = true;
         } else {
             creationDate = getCreationDate(userCreatedString);
-            isNewUser = false;
+
+            GregorianCalendar thirtyDaysAgo = pastDate(DAYS_TO_REMEMBER_USER, 0, 0);
+
+            if (creationDate.compareTo(thirtyDaysAgo) >= 0) {
+                isNewUser = false;
+            } else {
+                isNewUser = true;
+
+                if (storedUserID == null) {
+                    storedUserID = createUser();
+                }
+
+                storeUser(storedUserID, today());
+
+                rx.Observable.timer(MINUTES_TO_TRACK_NEW_USER, TimeUnit.MINUTES)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(Schedulers.io())
+                        .subscribe(new Observer<Long>() {
+                            @Override
+                            public void onCompleted() {
+
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
+                                e.printStackTrace();
+                            }
+
+                            @Override
+                            public void onNext(Long aLong) {
+                                markUserAsOld();
+                            }
+                        });
+            }
         }
 
         this.userID = storedUserID;
@@ -62,7 +104,7 @@ final class UserInfo {
 	}
 
     private String createUser() {
-        String newUserID = SecurityUtils.randomChars(16);
+        String newUserID = SecurityUtils.randomChars(USER_ID_CHAR_LENGTH);
 
         return newUserID;
     }
@@ -159,27 +201,12 @@ final class UserInfo {
 		GregorianCalendar today = today();
 		GregorianCalendar cal[] = new GregorianCalendar[16];
 		int validDates = 0;
-//		GregorianCalendar userCreated = today();
-//		userCreated.add(GregorianCalendar.DATE, -8);
 		for( int i=0; i<16; ++i ) {
 			cal[i] = (GregorianCalendar) today.clone();
 			cal[i].add(GregorianCalendar.DATE, -i);
-//			System.out.println( dateFormat.format(cal[i].getTime()) + " v " + dateFormat.format(userCreated.getTime()) + " : " + cal[i].compareTo(userCreated) );
 			if( cal[i].compareTo(userCreated) >= 0 )
 				validDates = i;
-		};
-//		System.out.println( validDates );
-//		System.out.println( "" + toHexDigit(validDates) );
-//		System.exit(0);
-		
-//		System.out.println( "::::::::::: --> " + dateFormat.format(today.getTime())
-//				+ " : " + dateFormat.format(cal[0].getTime())
-//				+ " : " + dateFormat.format(cal[1].getTime())
-//				+ " : " + dateFormat.format(cal[2].getTime())
-//				+ "... : " );
-//		for( GregorianCalendar gc : visitedDates ) {
-//			System.out.println( "\t" + dateFormat.format(gc.getTime()) );
-//		}
+		}
 		int b =  (visitedDates.contains(cal[15])?1:0) << 3
 			| (visitedDates.contains(cal[14])?1:0) << 2
 			| (visitedDates.contains(cal[13])?1:0) << 1
@@ -205,6 +232,16 @@ final class UserInfo {
 		gc = new GregorianCalendar( gc.get(GregorianCalendar.YEAR), gc.get(GregorianCalendar.MONTH), gc.get(GregorianCalendar.DAY_OF_MONTH) );
 		return gc;
 	}
+
+    private static GregorianCalendar pastDate(final int daysInPast, final int hoursInPast, final int minutesInPast) {
+        return new GregorianCalendar() {{
+            add(Calendar.DAY_OF_YEAR, -daysInPast);
+            set(Calendar.HOUR_OF_DAY, -hoursInPast);
+            set(Calendar.MINUTE, -minutesInPast);
+            set(Calendar.SECOND, 0);
+            set(Calendar.MILLISECOND, 0);
+        }};
+    }
 	
 	static final char toHexDigit( int i ) {
 		if( i <= 9 && i >= 0 ) {

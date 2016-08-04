@@ -208,7 +208,7 @@ public final class Tracker {
         
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_TRACK_VIEW);
         intent.putExtra(KEY_VIEW_ID, viewId);
-        intent.putExtra(KEY_VIEW_TITLE, viewId);
+        intent.putExtra(KEY_VIEW_TITLE, viewTitle);
         appContext.startService(intent);
     }
 
