@@ -38,6 +38,6 @@ final class SecurityUtils {
 			throw new RuntimeException();
 
 		// here's where we chartbeat-ify it:
-		return ret.replaceAll("\\/", ".").replaceAll("\\+", "_").substring(0,numchars);
+		return ret.replaceAll("\\/", "-").replaceAll("\\+", "_").substring(0,numchars);
 	}
 }
