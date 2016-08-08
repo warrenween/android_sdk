@@ -16,6 +16,8 @@ final class ChartBeatTracker {
     private static final String TAG = ChartBeatTracker.class.getSimpleName();
     public static final String CHARTBEAT_PREFS = "com.chartbeat.androidsdk.user";
 
+    private static final int SESSION_TOKEN_LENGTH = 30;
+
     private static final long MILLISECONDS_IN_ONE_SECOND = 1000;
 
     private static Handler handler;
@@ -102,7 +104,7 @@ final class ChartBeatTracker {
             previousToken = currentViewTracker.getToken();
         }
 
-        String generatedToken = SecurityUtils.randomChars(28);
+        String generatedToken = SecurityUtils.randomChars(SESSION_TOKEN_LENGTH);
         ViewDimension viewDimension = new ViewDimension(x, w, y, o, x);
 
         currentViewTracker = new ViewTracker(viewId, viewTitle, internalReferral, generatedToken, viewDimension);
