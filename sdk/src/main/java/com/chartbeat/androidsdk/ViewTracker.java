@@ -67,7 +67,7 @@ final class ViewTracker {
         }
 
         double minutesInView = getViewingTimeInMinutes();
-        params.put(QueryKeys.TIME_ON_VIEW_IN_MINUTES, String.format(Locale.US, "%.1f", minutesInView));
+        params.put(QueryKeys.TIME_ON_VIEW_IN_MINUTES, String.format(Locale.US, "%.2f", minutesInView));
 
         if (dimension != null) {
             params.putAll(dimension.toPingParams());
