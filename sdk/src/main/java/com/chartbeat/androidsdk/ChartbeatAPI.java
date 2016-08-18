@@ -11,7 +11,7 @@ import rx.Observable;
  * Created by Mike Dai Wang on 2016-02-05.
  */
 interface ChartbeatAPI {
-    String ENDPOINT = "http://ping.chartbeat.net";
+    String ENDPOINT = "https://ping.chartbeat.net";
     String HOST = "ping.chartbeat.net";
 
     @GET("ping")
