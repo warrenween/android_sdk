@@ -12,9 +12,6 @@ final class AppInfo {
     private static final String TAG = AppInfo.class.getSimpleName();
     private static final String SDK_NAME = "android";
 
-    public static final int VERSION_CODE = 6;
-    public static final String SDK_VERSION = SDK_NAME + "_" + VERSION_CODE;
-
     private static String packageName;
     private static String referrer;
     private static int deviceScreenWidth = -1;
@@ -54,7 +51,7 @@ final class AppInfo {
     }
 
     public String toString() {
-        return "Chartbeat tracking SDK (" + SDK_VERSION + "): " + this.accountID + "|" + this.packageName + "|" + this.host;
+        return "Chartbeat tracking SDK (" + getSdkVersion() + "): " + this.accountID + "|" + this.packageName + "|" + this.host;
     }
 
     String getHost() {
@@ -70,7 +67,7 @@ final class AppInfo {
     }
 
     String getSdkVersion() {
-        return SDK_VERSION;
+        return SDK_NAME + "_" + BuildConfig.VERSION_CODE;
     }
 
     String getDeviceScreenWidth() {

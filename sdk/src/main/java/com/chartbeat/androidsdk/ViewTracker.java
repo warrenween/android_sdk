@@ -85,7 +85,7 @@ final class ViewTracker {
 
     String getMinutesInView() {
         double minutesInView = getViewingTimeInMinutes();
-        return String.format(Locale.US, "%.1f", minutesInView);
+        return String.format(Locale.US, "%.2f", minutesInView);
     }
 
     LinkedHashMap<String, String> getDimensionParams() {
