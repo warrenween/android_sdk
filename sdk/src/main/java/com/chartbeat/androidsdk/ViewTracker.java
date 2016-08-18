@@ -63,7 +63,7 @@ final class ViewTracker {
 
     String getToken() {
         if (viewInfo != null) {
-            return viewInfo.getViewID();
+            return viewInfo.getToken();
         } else {
             return null;
         }

@@ -54,9 +54,11 @@ final class ViewContent {
             params.put(QueryKeys.ZONE_G2, zones);
         }
 
+        /* Not needed at the moment, may need it later on
         if (pageLoadTime != INVALID_LOAD_TIME) {
             params.put(QueryKeys.PAGE_LOAD_TIME, String.valueOf(pageLoadTime));
         }
+        */
 
         return params;
     }

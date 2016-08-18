@@ -189,7 +189,9 @@ final class ChartBeatTracker {
 
     synchronized void updatePageLoadingTime(final float pageLoadTime) {
         currentViewTracker.updatePageLoadingTime(pageLoadTime);
+        /* Not needed at the moment, may need it later on
         pingParams.addOneTimeParameter(QueryKeys.PAGE_LOAD_TIME);
+        */
         pingManager.alive();
     }
 
@@ -273,7 +275,7 @@ final class ChartBeatTracker {
                 addParameterIfRequired(parameters, QueryKeys.VIEW_TITLE, currentViewTracker.getViewTitle());
             }
 
-            int timezoneOffset = TimeZone.getDefault().getOffset(new Date().getTime()) / 1000 / 60;
+            int timezoneOffset = -(TimeZone.getDefault().getOffset(new Date().getTime()) / 1000 / 60);
             parameters.put(QueryKeys.TIME_ZONE, String.valueOf(timezoneOffset));
 
             if (appInfo != null) {

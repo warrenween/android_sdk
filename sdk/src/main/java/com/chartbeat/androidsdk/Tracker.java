@@ -246,7 +246,7 @@ public final class Tracker {
             throw new NullPointerException("viewId cannot be null");
         }
 
-        if (viewTitle == null) {
+        if (TextUtils.isEmpty(viewTitle)) {
             viewTitle = viewId;
         }
 
@@ -256,7 +256,7 @@ public final class Tracker {
         
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_TRACK_VIEW);
         intent.putExtra(KEY_VIEW_ID, viewId);
-        intent.putExtra(KEY_VIEW_TITLE, viewId);
+        intent.putExtra(KEY_VIEW_TITLE, viewTitle);
         intent.putExtra(KEY_POSITION_TOP, scrollPositionTop);
         intent.putExtra(KEY_WINDOW_HEIGHT, scrollWindowHeight);
         intent.putExtra(KEY_CONTENT_HEIGHT, totalContentHeight);
