@@ -12,7 +12,7 @@ final class AppInfo {
     private static final String TAG = AppInfo.class.getSimpleName();
     private static final String SDK_NAME = "android";
 
-    public static final int VERSION_CODE = 5;
+    public static final int VERSION_CODE = 6;
     public static final String SDK_VERSION = SDK_NAME + "_" + VERSION_CODE;
 
     private static String packageName;
