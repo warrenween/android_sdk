@@ -5,7 +5,10 @@ import android.os.Handler;
 import android.os.Looper;
 
 import java.lang.ref.WeakReference;
+import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import rx.Observer;
 
@@ -189,11 +192,10 @@ final class ChartBeatTracker {
         pingParams.addOneTimeParameter(QueryKeys.PAGE_LOAD_TIME);
         pingManager.alive();
     }
-    
 
 	void ping(boolean needsFullPingHint, String decay) {
 		LinkedHashMap<String, String> parameters = new LinkedHashMap<>(30);
-		final EngagementTracker.EngagementData engagementData;
+		final EngagementTracker.EngagementSnapshot engagementSnapshot;
 
 		// setup parameters in a synchronized block:
 		synchronized (this) {
@@ -206,39 +208,82 @@ final class ChartBeatTracker {
             }
 
             if (appInfo != null) {
-                addParametersIfRequired(parameters, appInfo.toPingParams());
-
-                if (firstPing) {
-                    addParameterIfRequired(parameters, QueryKeys.EXTERNAL_REFERRER, appInfo.getExternalReferrer());
-                }
+                addParameterIfRequired(parameters, QueryKeys.HOST, appInfo.getHost());
             }
 
             if (currentViewTracker != null) {
-                addParametersIfRequired(parameters, currentViewTracker.toPingParams());
+                addParameterIfRequired(parameters, QueryKeys.VIEW_ID, currentViewTracker.getViewID());
             }
 
             if (userInfo != null) {
-                addParametersIfRequired(parameters, userInfo.toPingParams());
+                addParameterIfRequired(parameters, QueryKeys.USER_ID, userInfo.getUserID());
+            }
+
+            if (appInfo != null) {
+                addParameterIfRequired(parameters, QueryKeys.REAL_DOMAIN_PACKAGE_NAME, appInfo.getPackageName());
+                addParameterIfRequired(parameters, QueryKeys.ACCOUNT_ID, appInfo.getAccountID());
+            }
+
+            if (currentViewTracker != null) {
+                addParametersIfRequired(parameters, currentViewTracker.getContentParams());
+            }
+
+            if (userInfo != null) {
+                addParameterIfRequired(parameters, QueryKeys.IS_NEW_USER, userInfo.isNewUser() ? "1" : "0");
+                addParameterIfRequired(parameters, QueryKeys.VISIT_FREQUENCY, userInfo.getUserVisitFrequencyString());
+            }
+
+            if (currentViewTracker != null) {
+                addParameterIfRequired(parameters, QueryKeys.TIME_ON_VIEW_IN_MINUTES, currentViewTracker.getMinutesInView());
+                addParametersIfRequired(parameters, currentViewTracker.getDimensionParams());
+            }
+
+            addParameterIfRequired(parameters, QueryKeys.DECAY, decay);
+
+            // engagement keys
+            engagementSnapshot = engagementTracker.getEngagementSnapshot();
+            parameters.put(QueryKeys.READING, engagementSnapshot.reading ? "1" : "0");
+            parameters.put(QueryKeys.WRITING, engagementSnapshot.typed ? "1" : "0");
+            parameters.put(QueryKeys.IDLING, engagementSnapshot.idle ? "1" : "0");
+            parameters.put(QueryKeys.ENGAGED_SECONDS, String.valueOf(engagementSnapshot.totalEngagement));
+            parameters.put(QueryKeys.ENGAGED_SECONDS_SINCE_LAST_PING, String.valueOf(engagementSnapshot.engagementSinceLastPing));
+
+            if (currentViewTracker != null) {
+                addParameterIfRequired(parameters, QueryKeys.INTERNAL_REFERRER, currentViewTracker.getInternalReferrer());
+            }
+
+            if (appInfo != null && firstPing) {
+                addParameterIfRequired(parameters, QueryKeys.EXTERNAL_REFERRER, appInfo.getExternalReferrer());
+            }
+
+            if (currentViewTracker != null) {
+                addParameterIfRequired(parameters, QueryKeys.TOKEN, currentViewTracker.getToken());
+            }
+
+            if (appInfo != null) {
+                addParameterIfRequired(parameters, QueryKeys.SDK_VERSION, appInfo.getSdkVersion());
+            }
+
+            if (previousToken != null && lastSuccessfulPingTime + lastDecayTime > System.currentTimeMillis()) {
+                addParameterIfRequired(parameters, QueryKeys.FORCE_DECAY, previousToken);
+            }
+            lastDecayTime = pingManager.expectedNextIntervalInSeconds() * 2 * MILLISECONDS_IN_ONE_SECOND;
+
+            if (currentViewTracker != null) {
+                addParameterIfRequired(parameters, QueryKeys.VIEW_TITLE, currentViewTracker.getViewTitle());
+            }
+
+            int timezoneOffset = TimeZone.getDefault().getOffset(new Date().getTime()) / 1000 / 60;
+            parameters.put(QueryKeys.TIME_ZONE, String.valueOf(timezoneOffset));
+
+            if (appInfo != null) {
+                addParameterIfRequired(parameters, QueryKeys.SCREEN_WIDTH, appInfo.getDeviceScreenWidth());
             }
 
             if (locationService != null) {
-                addParametersIfRequired(parameters, locationService.toPingParams());
+                addParameterIfRequired(parameters, QueryKeys.LONGITUDE, locationService.getLongitude());
+                addParameterIfRequired(parameters, QueryKeys.LATITUDE, locationService.getLatitude());
             }
-
-			addParameterIfRequired(parameters, QueryKeys.DECAY, decay);
-
-			if (previousToken != null && lastSuccessfulPingTime + lastDecayTime > System.currentTimeMillis()) {
-                addParameterIfRequired(parameters, QueryKeys.FORCE_DECAY, previousToken);
-            }
-
-			lastDecayTime = pingManager.expectedNextIntervalInSeconds() * 2 * MILLISECONDS_IN_ONE_SECOND;
-
-			// engagement keys
-			engagementData = engagementTracker.getEngagementSnapshot();
-			parameters.put(QueryKeys.ENGAGED_SECONDS, String.valueOf(engagementData.totalEngagement));
-			parameters.put(QueryKeys.READING, engagementData.reading ? "1" : "0");
-			parameters.put(QueryKeys.WRITING, engagementData.typed ? "1" : "0");
-			parameters.put(QueryKeys.IDLING, engagementData.idle ? "1" : "0");
 
 			// last key must be an empty underscore
 			parameters.put(QueryKeys.END_MARKER, "");
@@ -259,7 +304,7 @@ final class ChartBeatTracker {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    handlePingError(e.getLocalizedMessage(), engagementData);
+                                    handlePingError(e.getLocalizedMessage(), engagementSnapshot);
                                 }
                             });
                         }
@@ -276,7 +321,7 @@ final class ChartBeatTracker {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    handlePingResponseCode(code, engagementData);
+                                    handlePingResponseCode(code, engagementSnapshot);
                                 }
                             });
                         }
@@ -285,12 +330,12 @@ final class ChartBeatTracker {
 			synchronized( this ) {
                 Logger.e(TAG, "Not pinging: no network connection detected.");
 				pingParams.pingReset();
-				engagementTracker.lastPingFailed(engagementData);
+				engagementTracker.lastPingFailed(engagementSnapshot);
 			}
 		}
 	}
 
-    private void handlePingResponseCode(int code, EngagementTracker.EngagementData engagementData) {
+    private void handlePingResponseCode(int code, EngagementTracker.EngagementSnapshot engagementSnapshot) {
         synchronized( this ) {
             final boolean isInBackground = ForegroundTracker.isInBackground();
             pingParams.pingComplete(code);
@@ -307,7 +352,7 @@ final class ChartBeatTracker {
             }
             pingManager.setInBackground(isInBackground);
             if (code == 500 || code == 400) {
-                engagementTracker.lastPingFailed(engagementData);
+                engagementTracker.lastPingFailed(engagementSnapshot);
                 pingManager.retryImmediately();
             }
             if (code == 200) {
@@ -319,10 +364,10 @@ final class ChartBeatTracker {
         }
     }
 
-    private void handlePingError(String errorMessage, EngagementTracker.EngagementData engagementData) {
+    private void handlePingError(String errorMessage, EngagementTracker.EngagementSnapshot engagementSnapshot) {
         pingParams.pingError();
         Logger.e(TAG, "Error pinging Chartbeat: " + errorMessage);
-        engagementTracker.lastPingFailed(engagementData);
+        engagementTracker.lastPingFailed(engagementSnapshot);
     }
 
     private synchronized void addParametersIfRequired(LinkedHashMap<String, String> parameters, LinkedHashMap<String, String> additionalParameters) {
@@ -332,7 +377,9 @@ final class ChartBeatTracker {
     }
 
 	private synchronized void addParameterIfRequired(LinkedHashMap<String, String> parameters, String key, String value) {
-		addParameterIfRequired(parameters, pingParams, key, value);
+        if (key != null && value != null) {
+            addParameterIfRequired(parameters, pingParams, key, value);
+        }
 	}
 
 	private synchronized void addParameterIfRequired(LinkedHashMap<String, String> parameters, PingParams pingInfo, String key, String value) {

@@ -57,27 +57,23 @@ final class AppInfo {
         return "Chartbeat tracking SDK (" + SDK_VERSION + "): " + this.accountID + "|" + this.packageName + "|" + this.host;
     }
 
-    LinkedHashMap<String, String> toPingParams() {
-        LinkedHashMap<String, String> params = new LinkedHashMap<>();
+    String getHost() {
+        return host;
+    }
 
-        params.put(QueryKeys.SDK_VERSION, SDK_VERSION);
+    String getPackageName() {
+        return packageName;
+    }
 
-        if (accountID != null) {
-            params.put(QueryKeys.ACCOUNT_ID, accountID);
-        }
+    String getAccountID() {
+        return accountID;
+    }
 
-        if (host != null) {
-            params.put(QueryKeys.HOST, host);
-        }
+    String getSdkVersion() {
+        return SDK_VERSION;
+    }
 
-        if (packageName != null) {
-            params.put(QueryKeys.REAL_DOMAIN_PACKAGE_NAME, packageName);
-        }
-
-        if (deviceScreenWidth != -1) {
-            params.put(QueryKeys.SCREEN_WIDTH, String.valueOf(deviceScreenWidth));
-        }
-
-        return params;
+    String getDeviceScreenWidth() {
+        return String.valueOf(deviceScreenWidth);
     }
 }

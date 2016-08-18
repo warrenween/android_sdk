@@ -57,13 +57,13 @@ final class EngagementTracker {
         engagementTask.engage();
     }
 
-    synchronized void lastPingFailed(EngagementData ed) {
+    synchronized void lastPingFailed(EngagementSnapshot ed) {
         engaged |= ed.engaged;
         typed |= ed.typed;
     }
 
-    synchronized EngagementData getEngagementSnapshot() {
-        EngagementData data = new EngagementData(engagementTask.getTotalEngagementCount(), engaged, typed );
+    synchronized EngagementSnapshot getEngagementSnapshot() {
+        EngagementSnapshot data = new EngagementSnapshot(engagementTask.getTotalEngagementCount(), engagementTask.getEngagementSinceLastPing(), engaged, typed );
         engaged = false;
         typed = false;
         return data;
@@ -77,11 +77,13 @@ final class EngagementTracker {
         private final long startTime;
         private long lastEngagedTime = 0;
         private AtomicLong totalEngagementCount;
+        private AtomicLong engagementSinceLastPing;
 
         public EngagementTask() {
             startTime = System.currentTimeMillis();
             lastEngagedTime = 0;
             totalEngagementCount = new AtomicLong(0);
+            engagementSinceLastPing = new AtomicLong(0);
         }
 
         @Override
@@ -95,6 +97,7 @@ final class EngagementTracker {
             // Only increment the engagement count if the latest engagement is within the window
             if (engagedPeriod < ENGAGEMENT_WINDOW || engagedTimeSinceEnteringView < INITIAL_ENGAGEMENT_WINDOW) {
                 totalEngagementCount.incrementAndGet();
+                engagementSinceLastPing.incrementAndGet();
             }
         }
 
@@ -105,17 +108,25 @@ final class EngagementTracker {
         public long getTotalEngagementCount() {
             return totalEngagementCount.longValue();
         }
+
+        public long getEngagementSinceLastPing() {
+            long lastEngagementPeriod = engagementSinceLastPing.longValue();
+            engagementSinceLastPing.set(0);
+            return lastEngagementPeriod;
+        }
     }
 
-    final static class EngagementData {
+    final static class EngagementSnapshot {
         final boolean engaged, typed, reading, idle;
         final long totalEngagement;
+        final long engagementSinceLastPing;
 
-        public EngagementData(long totalEngagement, boolean engaged, boolean typed) {
+        public EngagementSnapshot(long totalEngagement, long engagementSinceLastPing, boolean engaged, boolean typed) {
             this.engaged = engaged;
             this.typed = typed;
             this.reading = engaged && (!typed);
             this.idle = !engaged;
+            this.engagementSinceLastPing = engagementSinceLastPing;
             this.totalEngagement = totalEngagement;
         }
     }

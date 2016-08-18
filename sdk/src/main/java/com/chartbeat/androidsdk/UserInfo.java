@@ -256,16 +256,4 @@ final class UserInfo {
 	void markUserAsOld() {
 		isNewUser = false;
 	}
-
-    LinkedHashMap<String, String> toPingParams() {
-        LinkedHashMap<String, String> params = new LinkedHashMap<>();
-
-        params.put(QueryKeys.USER_ID, getUserID());
-
-        params.put(QueryKeys.IS_NEW_USER, isNewUser() ? "1" : "0");
-
-        params.put(QueryKeys.VISIT_FREQUENCY, getUserVisitFrequencyString());
-
-        return params;
-    }
 }

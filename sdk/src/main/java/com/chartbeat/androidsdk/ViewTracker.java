@@ -38,11 +38,35 @@ final class ViewTracker {
     }
 
     String getViewID() {
-        return viewInfo.getViewID();
+        if (viewInfo != null) {
+            return viewInfo.getViewID();
+        } else {
+            return null;
+        }
+    }
+
+    String getViewTitle() {
+        if (viewInfo != null) {
+            return viewInfo.getViewTitle();
+        } else {
+            return null;
+        }
+    }
+
+    String getInternalReferrer() {
+        if (viewInfo != null) {
+            return viewInfo.getInternalReferrer();
+        } else {
+            return null;
+        }
     }
 
     String getToken() {
-        return viewInfo.getViewID();
+        if (viewInfo != null) {
+            return viewInfo.getViewID();
+        } else {
+            return null;
+        }
     }
 
     double getViewingTimeInMinutes() {
@@ -59,19 +83,23 @@ final class ViewTracker {
         return minutesInView;
     }
 
-    LinkedHashMap<String, String> toPingParams() {
-        LinkedHashMap<String, String> params = new LinkedHashMap<>();
-
-        if (viewInfo != null) {
-            params.putAll(viewInfo.toPingParams());
-        }
-
+    String getMinutesInView() {
         double minutesInView = getViewingTimeInMinutes();
-        params.put(QueryKeys.TIME_ON_VIEW_IN_MINUTES, String.format(Locale.US, "%.1f", minutesInView));
+        return String.format(Locale.US, "%.1f", minutesInView);
+    }
+
+    LinkedHashMap<String, String> getDimensionParams() {
+        LinkedHashMap<String, String> params = new LinkedHashMap<>();
 
         if (dimension != null) {
             params.putAll(dimension.toPingParams());
         }
+
+        return params;
+    }
+
+    LinkedHashMap<String, String> getContentParams() {
+        LinkedHashMap<String, String> params = new LinkedHashMap<>();
 
         if (content != null) {
             params.putAll(content.toPingParams());

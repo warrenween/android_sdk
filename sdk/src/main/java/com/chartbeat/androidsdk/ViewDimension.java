@@ -39,20 +39,20 @@ final class ViewDimension {
             params.put(QueryKeys.SCROLL_POSITION_TOP, String.valueOf(scrollPositionTop));
         }
 
-        if (totalContentHeight != -1) {
-            params.put(QueryKeys.CONTENT_HEIGHT, String.valueOf(totalContentHeight));
+        if (maxScrollDepth != -1) {
+            params.put(QueryKeys.MAX_SCROLL_DEPTH, String.valueOf(maxScrollDepth));
         }
 
-        if (scrollWindowHeight != -1) {
-            params.put(QueryKeys.SCROLL_WINDOW_HEIGHT, String.valueOf(scrollWindowHeight));
+        if (totalContentHeight != -1) {
+            params.put(QueryKeys.CONTENT_HEIGHT, String.valueOf(totalContentHeight));
         }
 
         if (fullyRenderedDocWidth != -1) {
             params.put(QueryKeys.DOCUMENT_WIDTH, String.valueOf(fullyRenderedDocWidth));
         }
 
-        if (maxScrollDepth != -1) {
-            params.put(QueryKeys.MAX_SCROLL_DEPTH, String.valueOf(maxScrollDepth));
+        if (scrollWindowHeight != -1) {
+            params.put(QueryKeys.SCROLL_WINDOW_HEIGHT, String.valueOf(scrollWindowHeight));
         }
 
         return params;

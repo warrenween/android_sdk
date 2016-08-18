@@ -1,6 +1,7 @@
 package com.chartbeat.androidsdk;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -10,7 +11,7 @@ import java.util.Set;
 final class PingParams {
     private static final String TAG = PingParams.class.getSimpleName();
 
-    Set<String> oneTimeKeys = new HashSet<String>();
+    Set<String> oneTimeKeys = new LinkedHashSet<>();
     PingMode pingMode;
 
     PingParams() {

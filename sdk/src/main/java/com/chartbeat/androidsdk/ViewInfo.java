@@ -22,35 +22,15 @@ final class ViewInfo {
         return viewID;
     }
 
+    String getViewTitle() {
+        return viewTitle;
+    }
+
     String getInternalReferrer() {
-        return internalReferrer;
+        return internalReferrer  == null ? "" : internalReferrer;
     }
 
     String getToken() {
         return token;
-    }
-
-    LinkedHashMap<String, String> toPingParams() {
-        LinkedHashMap<String, String> params = new LinkedHashMap<>();
-
-        if (viewID != null) {
-            params.put(QueryKeys.VIEW_ID, viewID);
-        }
-
-        if (viewTitle != null) {
-            params.put(QueryKeys.VIEW_TITLE, viewTitle);
-        }
-
-        if (internalReferrer != null) {
-            params.put(QueryKeys.INTERNAL_REFERRER, internalReferrer);
-        } else {
-            params.put(QueryKeys.INTERNAL_REFERRER, "");
-        }
-
-        if (token != null) {
-            params.put(QueryKeys.TOKEN, token);
-        }
-
-        return params;
     }
 }

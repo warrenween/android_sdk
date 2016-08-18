@@ -70,14 +70,19 @@ final class LocationService {
                 || fineLocation == PackageManager.PERMISSION_GRANTED;
     }
 
-    LinkedHashMap<String, String> toPingParams() {
-        LinkedHashMap<String, String> params = new LinkedHashMap<>();
-
+    String getLongitude() {
         if (location != null) {
-            params.put(QueryKeys.LONGITUDE, String.valueOf(location.getLongitude()));
-            params.put(QueryKeys.LATITUDE, String.valueOf(location.getLatitude()));
+            return String.valueOf(location.getLongitude());
+        } else {
+            return null;
         }
+    }
 
-        return params;
+    String getLatitude() {
+        if (location != null) {
+            return String.valueOf(location.getLatitude());
+        } else {
+            return null;
+        }
     }
 }
