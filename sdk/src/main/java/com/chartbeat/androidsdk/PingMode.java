@@ -17,7 +17,7 @@ enum PingMode {
 
     static {
         MANDATORY_PARAMETERS.add(QueryKeys.HOST);
-        MANDATORY_PARAMETERS.add(QueryKeys.REAL_DOMAIN_PACKAGE_NAME);
+        MANDATORY_PARAMETERS.add(QueryKeys.SUBDOMAIN);
         MANDATORY_PARAMETERS.add(QueryKeys.VIEW_ID);
         MANDATORY_PARAMETERS.add(QueryKeys.TOKEN);
         MANDATORY_PARAMETERS.add(QueryKeys.USER_ID);

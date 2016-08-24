@@ -7,7 +7,6 @@ import android.os.Looper;
 import java.lang.ref.WeakReference;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.TimeZone;
 
 import rx.Observer;
@@ -47,7 +46,7 @@ final class ChartBeatTracker {
 	private long lastDecayTime = 0;
 	private int sequentialErrors; // counts 503 errors.
 
-    ChartBeatTracker(WeakReference<Context> context, String accountID, String customHost, String userAgent, Looper looper) {
+    ChartBeatTracker(WeakReference<Context> context, String accountID, String domain, String userAgent, Looper looper) {
         this.context = context;
 
         if (handler == null) {
@@ -56,7 +55,7 @@ final class ChartBeatTracker {
 
         pingService = new PingService(userAgent);
 
-        appInfo = new AppInfo(context.get(), accountID, customHost);
+        this.appInfo = new AppInfo(context.get(), accountID, domain);
         locationService = new LocationService();
         this.userInfo = new UserInfo(context.get());
 
@@ -101,20 +100,23 @@ final class ChartBeatTracker {
 
     private void trackNewView(String viewId, String viewTitle, int x, int w, int y, int o) {
         String internalReferral = "";
+        String subdomain = null;
 
         if (currentViewTracker != null) {
+            subdomain = currentViewTracker.getSubdomain();
             internalReferral = currentViewTracker.getViewID();
-            previousToken = currentViewTracker.getToken();
+            this.previousToken = currentViewTracker.getToken();
         }
 
         String generatedToken = SecurityUtils.randomChars(SESSION_TOKEN_LENGTH);
         ViewDimension viewDimension = new ViewDimension(x, w, y, o, x);
 
-        currentViewTracker = new ViewTracker(viewId, viewTitle, internalReferral, generatedToken, viewDimension);
+        currentViewTracker = new ViewTracker(viewId, viewTitle, subdomain, internalReferral, generatedToken, viewDimension);
         pingParams.newView();
 
         Logger.d(TAG, appInfo.toString() + " :: TRACK VIEW :: " + viewId);
 
+        this.pingParams.addOneTimeParameter(QueryKeys.FORCE_DECAY);
         this.pingParams.addOneTimeParameter(QueryKeys.SCROLL_POSITION_TOP);
         this.pingParams.addOneTimeParameter(QueryKeys.CONTENT_HEIGHT);
         this.pingParams.addOneTimeParameter(QueryKeys.SCROLL_WINDOW_HEIGHT);
@@ -171,6 +173,11 @@ final class ChartBeatTracker {
         pingManager.alive();
     }
 
+    synchronized void updateSubdomain(final String subdomain) {
+        currentViewTracker.updateSubdomain(subdomain);
+        pingManager.alive();
+    }
+
     synchronized void updateZones(final String zones) {
         currentViewTracker.updateZones(zones);
         pingParams.addOneTimeParameter(QueryKeys.ZONE_G2);
@@ -211,36 +218,25 @@ final class ChartBeatTracker {
                 pingParams.pingReset();
             }
 
-            if (appInfo != null) {
-                addParameterIfRequired(parameters, QueryKeys.HOST, appInfo.getHost());
+            addParameterIfRequired(parameters, QueryKeys.HOST, appInfo.getDomain());
+            addParameterIfRequired(parameters, QueryKeys.VIEW_ID, currentViewTracker.getViewID());
+            addParameterIfRequired(parameters, QueryKeys.USER_ID, userInfo.getUserID());
+
+            if (currentViewTracker.getSubdomain() != null) {
+                addParameterIfRequired(parameters, QueryKeys.SUBDOMAIN, currentViewTracker.getSubdomain());
+            } else {
+                addParameterIfRequired(parameters, QueryKeys.SUBDOMAIN, appInfo.getDomain());
             }
 
-            if (currentViewTracker != null) {
-                addParameterIfRequired(parameters, QueryKeys.VIEW_ID, currentViewTracker.getViewID());
-            }
+            addParameterIfRequired(parameters, QueryKeys.ACCOUNT_ID, appInfo.getAccountID());
 
-            if (userInfo != null) {
-                addParameterIfRequired(parameters, QueryKeys.USER_ID, userInfo.getUserID());
-            }
+            // sections, authors, zones
+            addParametersIfRequired(parameters, currentViewTracker.getContentParams());
 
-            if (appInfo != null) {
-                addParameterIfRequired(parameters, QueryKeys.REAL_DOMAIN_PACKAGE_NAME, appInfo.getPackageName());
-                addParameterIfRequired(parameters, QueryKeys.ACCOUNT_ID, appInfo.getAccountID());
-            }
-
-            if (currentViewTracker != null) {
-                addParametersIfRequired(parameters, currentViewTracker.getContentParams());
-            }
-
-            if (userInfo != null) {
-                addParameterIfRequired(parameters, QueryKeys.IS_NEW_USER, userInfo.isNewUser() ? "1" : "0");
-                addParameterIfRequired(parameters, QueryKeys.VISIT_FREQUENCY, userInfo.getUserVisitFrequencyString());
-            }
-
-            if (currentViewTracker != null) {
-                addParameterIfRequired(parameters, QueryKeys.TIME_ON_VIEW_IN_MINUTES, currentViewTracker.getMinutesInView());
-                addParametersIfRequired(parameters, currentViewTracker.getDimensionParams());
-            }
+            addParameterIfRequired(parameters, QueryKeys.IS_NEW_USER, userInfo.isNewUser() ? "1" : "0");
+            addParameterIfRequired(parameters, QueryKeys.VISIT_FREQUENCY, userInfo.getUserVisitFrequencyString());
+            addParameterIfRequired(parameters, QueryKeys.TIME_ON_VIEW_IN_MINUTES, currentViewTracker.getMinutesInView());
+            addParametersIfRequired(parameters, currentViewTracker.getDimensionParams());
 
             addParameterIfRequired(parameters, QueryKeys.DECAY, decay);
 
@@ -252,42 +248,31 @@ final class ChartBeatTracker {
             parameters.put(QueryKeys.ENGAGED_SECONDS, String.valueOf(engagementSnapshot.totalEngagement));
             parameters.put(QueryKeys.ENGAGED_SECONDS_SINCE_LAST_PING, String.valueOf(engagementSnapshot.engagementSinceLastPing));
 
-            if (currentViewTracker != null) {
-                addParameterIfRequired(parameters, QueryKeys.INTERNAL_REFERRER, currentViewTracker.getInternalReferrer());
-            }
-
-            if (appInfo != null && firstPing) {
+            // referrer keys
+            addParameterIfRequired(parameters, QueryKeys.INTERNAL_REFERRER, currentViewTracker.getInternalReferrer());
+            if (firstPing) {
                 addParameterIfRequired(parameters, QueryKeys.EXTERNAL_REFERRER, appInfo.getExternalReferrer());
             }
 
-            if (currentViewTracker != null) {
-                addParameterIfRequired(parameters, QueryKeys.TOKEN, currentViewTracker.getToken());
-            }
+            addParameterIfRequired(parameters, QueryKeys.TOKEN, currentViewTracker.getToken());
+            addParameterIfRequired(parameters, QueryKeys.SDK_VERSION, appInfo.getSdkVersion());
 
-            if (appInfo != null) {
-                addParameterIfRequired(parameters, QueryKeys.SDK_VERSION, appInfo.getSdkVersion());
-            }
-
-            if (previousToken != null && lastSuccessfulPingTime + lastDecayTime > System.currentTimeMillis()) {
+            if (previousToken != null) {
                 addParameterIfRequired(parameters, QueryKeys.FORCE_DECAY, previousToken);
             }
             lastDecayTime = pingManager.expectedNextIntervalInSeconds() * 2 * MILLISECONDS_IN_ONE_SECOND;
 
-            if (currentViewTracker != null) {
-                addParameterIfRequired(parameters, QueryKeys.VIEW_TITLE, currentViewTracker.getViewTitle());
-            }
+            addParameterIfRequired(parameters, QueryKeys.VIEW_TITLE, currentViewTracker.getViewTitle());
 
             int timezoneOffset = -(TimeZone.getDefault().getOffset(new Date().getTime()) / 1000 / 60);
             parameters.put(QueryKeys.TIME_ZONE, String.valueOf(timezoneOffset));
 
-            if (appInfo != null) {
-                addParameterIfRequired(parameters, QueryKeys.SCREEN_WIDTH, appInfo.getDeviceScreenWidth());
-            }
+            addParameterIfRequired(parameters, QueryKeys.SCREEN_WIDTH, appInfo.getDeviceScreenWidth());
 
-            if (locationService != null) {
-                addParameterIfRequired(parameters, QueryKeys.LONGITUDE, locationService.getLongitude());
-                addParameterIfRequired(parameters, QueryKeys.LATITUDE, locationService.getLatitude());
-            }
+//            if (locationService != null) {
+//                addParameterIfRequired(parameters, QueryKeys.LONGITUDE, locationService.getLongitude());
+//                addParameterIfRequired(parameters, QueryKeys.LATITUDE, locationService.getLatitude());
+//            }
 
 			// last key must be an empty underscore
 			parameters.put(QueryKeys.END_MARKER, "");

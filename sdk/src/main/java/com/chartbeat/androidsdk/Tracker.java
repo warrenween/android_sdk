@@ -57,6 +57,7 @@ public final class Tracker {
     static final String ACTION_LEFT_VIEW = "ACTION_LEFT_VIEW";
     static final String ACTION_USER_INTERACTED = "ACTION_USER_INTERACTED";
     static final String ACTION_USER_TYPED = "ACTION_USER_TYPED";
+    static final String ACTION_SET_SUBDOMAIN = "ACTION_SET_SUBDOMAIN";
     static final String ACTION_SET_ZONES = "ACTION_SET_ZONES";
     static final String ACTION_SET_AUTHORS = "ACTION_SET_AUTHORS";
     static final String ACTION_SET_SECTIONS = "ACTION_SET_SECTIONS";
@@ -64,10 +65,11 @@ public final class Tracker {
     static final String ACTION_SET_POSITION = "ACTION_SET_POSITION";
 
     static final String KEY_ACCOUNT_ID = "KEY_ACCOUNT_ID";
-    static final String KEY_CUSTOM_HOST = "KEY_CUSTOM_HOST";
+    static final String KEY_DOMAIN = "KEY_DOMAIN";
     static final String KEY_APP_REFERRER = "KEY_APP_REFERRER";
     static final String KEY_VIEW_ID = "KEY_VIEW_ID";
     static final String KEY_VIEW_TITLE = "KEY_VIEW_TITLE";
+    static final String KEY_SUBDOMAIN = "KEY_SUBDOMAIN";
     static final String KEY_ZONES = "KEY_ZONES";
     static final String KEY_AUTHORS = "KEY_AUTHORS";
     static final String KEY_SECTIONS = "KEY_SECTIONS";
@@ -86,14 +88,14 @@ public final class Tracker {
      * this call will be ignored.
      *
      * @param accountId
-     *            your account id on the Chartbeat system.
-     * @param suffix
-     *            if not null and not an empty string, this is alternative
-     *            package name.
+     *            your account id on the Chartbeat system. e.g. "12345"
+     * @param domain
+     *            the chartbeat dashboard domain name you want to report analytics data to, e.g.
+     *            "mynewspaper.com"
      * @param context
      *            the context.
      */
-    public static void startTrackerWithAccountId(String accountId, String suffix, Context context) {
+    public static void setupTracker(String accountId, String domain, Context context) {
         if (accountId == null) {
             throw new NullPointerException("accountId cannot be null");
         }
@@ -102,39 +104,18 @@ public final class Tracker {
             throw new NullPointerException("context cannot be null");
         }
 
-        startSDK(accountId, suffix, context);
+        startSDK(accountId, domain, context);
     }
 
-    /**
-     * initializes the tracker. If the tracker has already been initialized,
-     * this call will be ignored.
-     *
-     * @param accountId
-     *            your account id on the Chartbeat system.
-     * @param context
-     *            the context.
-     */
-    public static void startTrackerWithAccountId(String accountId, Context context) {
-        if (accountId == null) {
-            throw new NullPointerException("accountId cannot be null");
-        }
-
-        if (context == null) {
-            throw new NullPointerException("context cannot be null");
-        }
-
-        startSDK(accountId, null, context);
-    }
-
-    private static void startSDK(String accountID, String customHost, Context context) {
+    private static void startSDK(String accountID, String domain, Context context) {
         appContext = context.getApplicationContext();
         Tracker.accountID = accountID;
 
         Intent intent = new Intent(context.getApplicationContext(), ChartbeatService.class);
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_INIT_TRACKER);
         intent.putExtra(KEY_ACCOUNT_ID, accountID);
-        if (customHost != null) {
-            intent.putExtra(KEY_CUSTOM_HOST, customHost);
+        if (domain != null) {
+            intent.putExtra(KEY_DOMAIN, domain);
         }
 
         appContext.startService(intent);
@@ -314,6 +295,26 @@ public final class Tracker {
         
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_USER_TYPED);
 
+        appContext.startService(intent);
+    }
+
+    /**
+     * Call this method to set the subdomain for the current view. This will not
+     * be necessary in most situations since the subdomain will automatically default
+     * to the domain setting. See our main documentation about domain/subdomain settings
+     * for clarification, if you think you may need to use this setting.
+     *
+     * @param subdomain
+     *            the subdomain name that the current view should track under.
+     */
+    public static void setSubdomain(String subdomain) {
+        didInit();
+        didStartTracking();
+
+        Intent intent = new Intent(appContext, ChartbeatService.class);
+
+        intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_SET_SUBDOMAIN);
+        intent.putExtra(KEY_SUBDOMAIN, subdomain);
         appContext.startService(intent);
     }
 

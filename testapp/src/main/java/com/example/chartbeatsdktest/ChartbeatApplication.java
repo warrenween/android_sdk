@@ -12,6 +12,6 @@ public class ChartbeatApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        Tracker.startTrackerWithAccountId("54876", this);
+        Tracker.setupTracker("54876", "androidsdktest.chartbeat.com", this);
     }
 }

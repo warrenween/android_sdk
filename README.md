@@ -37,12 +37,12 @@ the only class you will need to access to use the SDK. All of the methods you
 need to access are `public` and `static`.
 
 **Basic Usage:**
-* Start by initializing the tracker with one of the `startTrackerWithaccountId()` functions.
+* Start by initializing the tracker with the `setupTracker()` function.
 You only need to do this once. However, if you have multiple entry points into your app,
 you may call this from any of them and all but the first call will be ignored.
 * Next, if you have information about how the user was referred to your app,
 you can call `setAppReferrer()` with a string indicating how the user was referred. Be sure
-to do this after calling `startTrackerWithaccountId()` but before calling `trackView()` for
+to do this after calling `setupTracker()` but before calling `trackView()` for
 the first time.
 * Whenever a user enters an activity, you must call `trackView()`, typically from your
 activity's `onResume()` function. Without calling this function, tracker will never
@@ -64,7 +64,7 @@ see the Javadocs for `com.chartbeat.androidsdk.Tracker`.
 
 * Debugging: if you wish to see what data is being sent to the server, when and so on,
 in the logs, you can set `com.chartbeat.androidsdk.DEBUG` to `true`. You should set this
-to `true` before your first call to `startTrackerWithAccountId()`abut you can set it
+to `true` before your first call to `setupTracker()` but you can set it
 anytime.
 
 

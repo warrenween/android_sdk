@@ -14,6 +14,7 @@ import android.widget.RadioButton;
 
 import com.chartbeat.androidsdk.Tracker;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 public class AltActivity extends Activity {
@@ -134,13 +135,16 @@ public class AltActivity extends Activity {
 	public void onResume() {
 		super.onResume();
 		Tracker.trackView(this, VIEW_ID, VIEW_TITLE);
+		Tracker.setSubdomain("sports.androidsdktest.chartbeat.com");
+		Tracker.setAuthors("AuthorF,AuthorG");
+		Tracker.setSections("Sports");
 		//simulate view loading a half second later:
-		new Handler().postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				Tracker.setViewLoadTime(.5f);
-			}
-		}, 500 );
+//		new Handler().postDelayed(new Runnable() {
+//			@Override
+//			public void run() {
+//				Tracker.setViewLoadTime(.5f);
+//			}
+//		}, 500 );
 	}
 
 	@Override

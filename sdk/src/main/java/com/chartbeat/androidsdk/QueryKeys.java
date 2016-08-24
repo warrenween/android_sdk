@@ -9,7 +9,7 @@ final class QueryKeys {
     public static final String HOST = "h";
     public static final String VIEW_ID = "p";
     public static final String USER_ID = "u";
-    public static final String REAL_DOMAIN_PACKAGE_NAME = "d";
+    public static final String SUBDOMAIN = "d";
     public static final String ACCOUNT_ID = "g";
 
     // Per view visited

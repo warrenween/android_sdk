@@ -16,7 +16,7 @@ final class ChartbeatServiceHandler extends Handler {
     private static final String TAG = ChartbeatServiceHandler.class.getSimpleName();
 
     private static final String KEY_LAST_USED_ACCOUNT_ID = "KEY_LAST_USED_ACCOUNT_ID";
-    private static final String KEY_LAST_USED_CUSTOM_HOST = "KEY_LAST_USED_CUSTOM_HOST";
+    private static final String KEY_LAST_USED_DOMAIN = "KEY_LAST_USED_DOMAIN";
 
     private WeakReference<Context> context;
     private static ChartBeatTracker singleton;
@@ -61,14 +61,14 @@ final class ChartbeatServiceHandler extends Handler {
         String accountID = prefs.getString(KEY_LAST_USED_ACCOUNT_ID, null);
 
         if (accountID != null) {
-            String customHost = prefs.getString(KEY_LAST_USED_CUSTOM_HOST, null);
+            String domain = prefs.getString(KEY_LAST_USED_DOMAIN, null);
 
-            initSDK(accountID, customHost);
+            initSDK(accountID, domain);
         }
     }
 
-    private void initSDK(String accountID, String customHost) {
-        singleton = new ChartBeatTracker(context, accountID, customHost, userAgent, getLooper());
+    private void initSDK(String accountID, String domain) {
+        singleton = new ChartBeatTracker(context, accountID, domain, userAgent, getLooper());
     }
 
     private void handleMessageType(String actionType, Bundle bundle) {
@@ -97,6 +97,9 @@ final class ChartbeatServiceHandler extends Handler {
             case Tracker.ACTION_USER_TYPED:
                 userTyped();
                 break;
+            case Tracker.ACTION_SET_SUBDOMAIN:
+                setSubdomain(bundle);
+                break;
             case Tracker.ACTION_SET_ZONES:
                 setZones(bundle);
                 break;
@@ -120,19 +123,19 @@ final class ChartbeatServiceHandler extends Handler {
     private void handleSDKInit(Bundle bundle) {
         if (!isSDKInitialized()) {
             String accountID = bundle.getString(Tracker.KEY_ACCOUNT_ID);
-            String customHost = bundle.getString(Tracker.KEY_CUSTOM_HOST);
+            String domain = bundle.getString(Tracker.KEY_DOMAIN);
 
-            initSDK(accountID, customHost);
-            cacheSDKDetailForReinit(accountID, customHost);
+            initSDK(accountID, domain);
+            cacheSDKDetailForReinit(accountID, domain);
         }
     }
 
-    private void cacheSDKDetailForReinit(String accountID, String customHost) {
+    private void cacheSDKDetailForReinit(String accountID, String domain) {
         SharedPreferences prefs = context.get().getSharedPreferences(ChartBeatTracker.CHARTBEAT_PREFS, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
         editor.putString(KEY_LAST_USED_ACCOUNT_ID, accountID);
-        editor.putString(KEY_LAST_USED_CUSTOM_HOST, customHost);
+        editor.putString(KEY_LAST_USED_DOMAIN, domain);
         editor.commit();
     }
 
@@ -152,7 +155,7 @@ final class ChartbeatServiceHandler extends Handler {
         SharedPreferences.Editor editor = prefs.edit();
 
         editor.putString(KEY_LAST_USED_ACCOUNT_ID, null);
-        editor.putString(KEY_LAST_USED_CUSTOM_HOST, null);
+        editor.putString(KEY_LAST_USED_DOMAIN, null);
         editor.commit();
     }
 
@@ -180,6 +183,15 @@ final class ChartbeatServiceHandler extends Handler {
 
     public static void userTyped() {
         singleton.userTypedImpl();
+    }
+
+    public static void setSubdomain(Bundle bundle) {
+        if (singleton.isNotTrackingAnyView()) {
+            Logger.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
+            return;
+        }
+        String subdomain = bundle.getString(Tracker.KEY_SUBDOMAIN);
+        singleton.updateSubdomain(subdomain);
     }
 
     public static void setZones(Bundle bundle) {

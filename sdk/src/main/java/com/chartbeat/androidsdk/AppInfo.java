@@ -3,8 +3,6 @@ package com.chartbeat.androidsdk;
 import android.content.Context;
 import android.graphics.Point;
 
-import java.util.LinkedHashMap;
-
 /**
  * Created by Mike Dai Wang on 2016-02-04.
  */
@@ -17,9 +15,9 @@ final class AppInfo {
     private static int deviceScreenWidth = -1;
 
     private String accountID;
-    private String host;
+    private String domain;
 
-    AppInfo(Context context, String accountID, String customHost) {
+    AppInfo(Context context, String accountID, String domain) {
         if (accountID == null) {
             throw new NullPointerException("Account ID cannot be null");
         }
@@ -30,10 +28,10 @@ final class AppInfo {
             packageName = context.getPackageName();
         }
 
-        if (customHost == null) {
-            host = packageName;
+        if (domain == null) {
+            throw new NullPointerException("Domain cannot be null");
         } else {
-            host = customHost;
+            this.domain = domain;
         }
 
         if (deviceScreenWidth == -1) {
@@ -51,11 +49,11 @@ final class AppInfo {
     }
 
     public String toString() {
-        return "Chartbeat tracking SDK (" + getSdkVersion() + "): " + this.accountID + "|" + this.packageName + "|" + this.host;
+        return "Chartbeat tracking SDK (" + getSdkVersion() + "): " + this.accountID + "|" + this.packageName + "|" + this.domain;
     }
 
-    String getHost() {
-        return host;
+    String getDomain() {
+        return domain;
     }
 
     String getPackageName() {

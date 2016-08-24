@@ -34,11 +34,7 @@ public class ChartbeatMainActivity extends Activity {
             @Override
             public void onGlobalLayout() {
                 System.out.println("------- " + this);
-                Tracker.trackView(ChartbeatMainActivity.this, VIEW_ID, VIEW_TITLE,
-                        msv.getScrollPosition(),
-                        msv.getContentHeight(),
-                        msv.getViewHeight(),
-                        msv.getWidth());
+				trackWithChartbeat(msv);
             }
 		        });
 	}
@@ -62,11 +58,7 @@ public class ChartbeatMainActivity extends Activity {
 		MainScrollView msv = (MainScrollView) getWindow().getDecorView().findViewById(R.id.scrollView1);
 		
 		if( msv.getContentHeight() != 0 ) {
-			Tracker.trackView(ChartbeatMainActivity.this, VIEW_ID, VIEW_TITLE,
-					msv.getScrollPosition(),
-					msv.getContentHeight(),
-					msv.getViewHeight(),
-					msv.getWidth() );
+			trackWithChartbeat(msv);
 		}
 	}
 	
@@ -85,5 +77,17 @@ public class ChartbeatMainActivity extends Activity {
 		Log.d(TAG, "Switching Views");
 		Intent intent = new Intent(this,AltActivity.class);
 		startActivity(intent);
+	}
+
+	private void trackWithChartbeat(MainScrollView msv) {
+		Tracker.trackView(ChartbeatMainActivity.this, VIEW_ID, VIEW_TITLE,
+				msv.getScrollPosition(),
+				msv.getContentHeight(),
+				msv.getViewHeight(),
+				msv.getWidth());
+		Tracker.setSubdomain("");
+		Tracker.setSections("");
+		Tracker.setAuthors("");
+		Tracker.setZones("");
 	}
 }
