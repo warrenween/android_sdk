@@ -123,4 +123,4 @@ Maven/Gradle
 ----
 The artifact is hosted on jcenter
 
-[ ![Download](https://api.bintray.com/packages/rmangi/maven/com.chartbeat.androidsdk/images/download.svg) ](https://bintray.com/rmangi/maven/com.chartbeat.androidsdk/_latestVersion)
+[ ![Download](https://api.bintray.com/packages/chartbeat-labs/maven/com.chartbeat.androidsdk/images/download.svg) ](https://bintray.com/chartbeat-labs/maven/com.chartbeat.androidsdk/_latestVersion)
