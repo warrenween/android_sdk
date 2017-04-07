@@ -112,6 +112,7 @@
 # RxJava
 
 -dontwarn sun.misc.**
+-dontwarn okio.**
 
 -keepclassmembers class rx.internal.util.unsafe.*ArrayQueue*Field* {
    long producerIndex;
