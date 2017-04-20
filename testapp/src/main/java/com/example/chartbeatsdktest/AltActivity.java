@@ -135,7 +135,8 @@ public class AltActivity extends Activity {
 	public void onResume() {
 		super.onResume();
 		Tracker.trackView(this, VIEW_ID, VIEW_TITLE);
-		Tracker.setSubdomain("sports.androidsdktest.chartbeat.com");
+		Tracker.setDomain("alternate-chartbeat-dashboard.com");
+		Tracker.setSubdomain("sports.alternate-chartbeat-dashboard.com");
 		Tracker.setAuthors("AuthorF,AuthorG");
 		Tracker.setSections("Sports");
 		//simulate view loading a half second later:

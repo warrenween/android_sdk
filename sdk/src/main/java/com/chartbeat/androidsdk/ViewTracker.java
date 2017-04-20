@@ -17,9 +17,11 @@ final class ViewTracker {
     private ViewDimension dimension;
     private ViewContent content;
     private String subdomain;
+    private String domain;
 
-    ViewTracker(String viewID, String viewTitle, String subdomain, String internalReferrer, String token, ViewDimension dimension) {
+    ViewTracker(String viewID, String viewTitle, String domain, String subdomain, String internalReferrer, String token, ViewDimension dimension) {
         this.viewInfo = new ViewInfo(viewID, viewTitle, internalReferrer, token);
+        this.domain = domain;
         this.subdomain = subdomain;
         this.viewInitTime = System.currentTimeMillis();
         if (dimension == null) {
@@ -58,6 +60,8 @@ final class ViewTracker {
     String getSubdomain() {
         return this.subdomain;
     }
+
+    String getDomain() { return this.domain; }
 
     String getInternalReferrer() {
         if (viewInfo != null) {
@@ -129,6 +133,14 @@ final class ViewTracker {
             this.subdomain = subdomain;
         } else {
             this.subdomain = null;
+        }
+    }
+
+    void updateDomain(String domain) {
+        if (domain != null && !domain.isEmpty()) {
+            this.domain = domain;
+        } else {
+            this.domain = null;
         }
     }
 

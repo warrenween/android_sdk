@@ -85,6 +85,7 @@ public class ChartbeatMainActivity extends Activity {
 				msv.getContentHeight(),
 				msv.getViewHeight(),
 				msv.getWidth());
+		Tracker.setDomain("");
 		Tracker.setSubdomain("");
 		Tracker.setSections("");
 		Tracker.setAuthors("");

@@ -100,6 +100,9 @@ final class ChartbeatServiceHandler extends Handler {
             case Tracker.ACTION_SET_SUBDOMAIN:
                 setSubdomain(bundle);
                 break;
+            case Tracker.ACTION_SET_DOMAIN:
+                setDomain(bundle);
+                break;
             case Tracker.ACTION_SET_ZONES:
                 setZones(bundle);
                 break;
@@ -183,6 +186,15 @@ final class ChartbeatServiceHandler extends Handler {
 
     public static void userTyped() {
         singleton.userTypedImpl();
+    }
+
+    public static void setDomain(Bundle bundle) {
+        if (singleton.isNotTrackingAnyView()) {
+            Logger.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
+            return;
+        }
+        String domain = bundle.getString(Tracker.KEY_DOMAIN);
+        singleton.updateDomain(domain);
     }
 
     public static void setSubdomain(Bundle bundle) {

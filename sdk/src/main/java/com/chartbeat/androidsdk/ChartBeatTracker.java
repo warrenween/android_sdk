@@ -100,9 +100,11 @@ final class ChartBeatTracker {
 
     private void trackNewView(String viewId, String viewTitle, int x, int w, int y, int o) {
         String internalReferral = "";
+        String domain = null;
         String subdomain = null;
 
         if (currentViewTracker != null) {
+            domain = currentViewTracker.getDomain();
             subdomain = currentViewTracker.getSubdomain();
             internalReferral = currentViewTracker.getViewID();
             this.previousToken = currentViewTracker.getToken();
@@ -111,7 +113,7 @@ final class ChartBeatTracker {
         String generatedToken = SecurityUtils.randomChars(SESSION_TOKEN_LENGTH);
         ViewDimension viewDimension = new ViewDimension(x, w, y, o, x);
 
-        currentViewTracker = new ViewTracker(viewId, viewTitle, subdomain, internalReferral, generatedToken, viewDimension);
+        currentViewTracker = new ViewTracker(viewId, viewTitle, domain, subdomain, internalReferral, generatedToken, viewDimension);
         pingParams.newView();
 
         Logger.d(TAG, appInfo.toString() + " :: TRACK VIEW :: " + viewId);
@@ -178,6 +180,11 @@ final class ChartBeatTracker {
         pingManager.alive();
     }
 
+    synchronized void updateDomain(final String domain) {
+        currentViewTracker.updateDomain(domain);
+        pingManager.alive();
+    }
+
     synchronized void updateZones(final String zones) {
         currentViewTracker.updateZones(zones);
         pingParams.addOneTimeParameter(QueryKeys.ZONE_G2);
@@ -218,7 +225,12 @@ final class ChartBeatTracker {
                 pingParams.pingReset();
             }
 
-            addParameterIfRequired(parameters, QueryKeys.HOST, appInfo.getDomain());
+            if (currentViewTracker.getDomain() != null) {
+                addParameterIfRequired(parameters, QueryKeys.HOST, currentViewTracker.getDomain());
+            } else {
+                addParameterIfRequired(parameters, QueryKeys.HOST, appInfo.getDomain());
+            }
+
             addParameterIfRequired(parameters, QueryKeys.VIEW_ID, currentViewTracker.getViewID());
             addParameterIfRequired(parameters, QueryKeys.USER_ID, userInfo.getUserID());
 

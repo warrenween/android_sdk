@@ -57,6 +57,7 @@ public final class Tracker {
     static final String ACTION_LEFT_VIEW = "ACTION_LEFT_VIEW";
     static final String ACTION_USER_INTERACTED = "ACTION_USER_INTERACTED";
     static final String ACTION_USER_TYPED = "ACTION_USER_TYPED";
+    static final String ACTION_SET_DOMAIN = "ACTION_SET_DOMAIN";
     static final String ACTION_SET_SUBDOMAIN = "ACTION_SET_SUBDOMAIN";
     static final String ACTION_SET_ZONES = "ACTION_SET_ZONES";
     static final String ACTION_SET_AUTHORS = "ACTION_SET_AUTHORS";
@@ -295,6 +296,26 @@ public final class Tracker {
         
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_USER_TYPED);
 
+        appContext.startService(intent);
+    }
+
+    /**
+     * Call this method to set the domain for the current view. This will only need be done if
+     * the app needs to send data to different dashboards depending on the view. See our main
+     * documentation about domain/subdomain settings for clarification, if you think you may need
+     * to use this setting.
+     *
+     * @param domain
+     *            the domain name that the current view should track under.
+     */
+    public static void setDomain(String domain) {
+        didInit();
+        didStartTracking();
+
+        Intent intent = new Intent(appContext, ChartbeatService.class);
+
+        intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_SET_DOMAIN);
+        intent.putExtra(KEY_DOMAIN, domain);
         appContext.startService(intent);
     }
 
