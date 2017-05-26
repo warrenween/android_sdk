@@ -7,6 +7,7 @@ package com.chartbeat.androidsdk;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Message;
@@ -31,7 +32,7 @@ public class ChartbeatService extends Service {
 
     @Override
     public void onCreate() {
-        if (bgThread == null) {
+        if (bgThread == null || !bgThread.isAlive()) {
             bgThread = new HandlerThread(TRACKER_THREAD, Process.THREAD_PRIORITY_BACKGROUND);
             bgThread.start();
         }
@@ -56,6 +57,15 @@ public class ChartbeatService extends Service {
     @Override
     public void onDestroy() {
         handler.removeCallbacksAndMessages(null);
-        bgThread.quit();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            bgThread.getLooper().quitSafely();
+            bgThread.quitSafely();
+        } else {
+            bgThread.getLooper().quit();
+            bgThread.quit();
+        }
+
+        bgThread = null;
     }
 }
