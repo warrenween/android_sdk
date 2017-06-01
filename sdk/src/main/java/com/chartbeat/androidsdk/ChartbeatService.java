@@ -59,10 +59,16 @@ public class ChartbeatService extends Service {
         handler.removeCallbacksAndMessages(null);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            bgThread.getLooper().quitSafely();
+            if (bgThread.getLooper() != null) {
+                bgThread.getLooper().quitSafely();
+            }
+
             bgThread.quitSafely();
         } else {
-            bgThread.getLooper().quit();
+            if (bgThread.getLooper() != null) {
+                bgThread.getLooper().quit();
+            }
+
             bgThread.quit();
         }
 
