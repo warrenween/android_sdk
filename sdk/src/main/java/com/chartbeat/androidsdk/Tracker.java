@@ -9,6 +9,12 @@ import android.content.Intent;
 import android.text.TextUtils;
 
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
+
+import rx.Observable;
+import rx.Subscriber;
+import rx.Subscription;
+import rx.schedulers.Schedulers;
 
 /**
  * This class is the main entry point into the Chartbeat SDK. All Chartbeat
@@ -81,6 +87,8 @@ public final class Tracker {
     static final String KEY_CONTENT_HEIGHT = "KEY_CONTENT_HEIGHT";
     static final String KEY_DOC_WIDTH = "KEY_DOC_WIDTH";
 
+    private static Subscription userInteractSubscription;
+    private static final int USER_INTERACT_WINDOW_IN_SECONDS = 5;
 
     /** ----------- Public static functions -------------- */
 
@@ -180,6 +188,8 @@ public final class Tracker {
             throw new NullPointerException("viewId cannot be null");
         }
 
+        resetUserInteractionMonitor();
+
         if (viewTitle == null) {
             viewTitle = viewId;
         }
@@ -228,6 +238,8 @@ public final class Tracker {
             throw new NullPointerException("viewId cannot be null");
         }
 
+        resetUserInteractionMonitor();
+
         if (TextUtils.isEmpty(viewTitle)) {
             viewTitle = viewId;
         }
@@ -247,6 +259,12 @@ public final class Tracker {
         appContext.startService(intent);
     }
 
+    private static void resetUserInteractionMonitor() {
+        if (userInteractSubscription != null && !userInteractSubscription.isUnsubscribed()) {
+            userInteractSubscription.unsubscribe();
+        }
+    }
+
     /**
      * Call this whenever the user leaves an activity. This will be used as a
      * hint that the user might have left the app. If the tracker has not been
@@ -259,6 +277,8 @@ public final class Tracker {
         if (viewId == null) {
             throw new NullPointerException("viewId cannot be null");
         }
+
+        resetUserInteractionMonitor();
 
         Intent intent = new Intent(appContext, ChartbeatService.class);
         
@@ -276,12 +296,39 @@ public final class Tracker {
     public static void userInteracted() {
         didInit();
         didStartTracking();
+        startUserInteractTimer();
+    }
+
+    /**
+     * Perform interaction service start on a rolling time window
+     */
+    private static void startUserInteractTimer() {
+        if (userInteractSubscription != null && !userInteractSubscription.isUnsubscribed()) {
+            return;
+        }
 
         Intent intent = new Intent(appContext, ChartbeatService.class);
-        
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_USER_INTERACTED);
-
         appContext.startService(intent);
+
+        userInteractSubscription = Observable.timer(USER_INTERACT_WINDOW_IN_SECONDS, TimeUnit.SECONDS)
+                .observeOn(Schedulers.io())
+                .subscribe(new Subscriber<Long>() {
+                    @Override
+                    public void onCompleted() {
+                        // Intentionally left blank, resets timer, automatically unsubscribe
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Logger.e(TAG, e.getMessage());
+                    }
+
+                    @Override
+                    public void onNext(Long aLong) {
+
+                    }
+                });
     }
 
     /**
