@@ -88,7 +88,7 @@ public final class Tracker {
     static final String KEY_DOC_WIDTH = "KEY_DOC_WIDTH";
 
     private static Subscription userInteractSubscription;
-    private static final int USER_INTERACT_WINDOW_IN_SECONDS = 5;
+    private static final int USER_INTERACT_WINDOW_IN_MILLISECONDS = 500;
 
     /** ----------- Public static functions -------------- */
 
@@ -311,7 +311,7 @@ public final class Tracker {
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_USER_INTERACTED);
         appContext.startService(intent);
 
-        userInteractSubscription = Observable.timer(USER_INTERACT_WINDOW_IN_SECONDS, TimeUnit.SECONDS)
+        userInteractSubscription = Observable.timer(USER_INTERACT_WINDOW_IN_MILLISECONDS, TimeUnit.MILLISECONDS)
                 .observeOn(Schedulers.io())
                 .subscribe(new Subscriber<Long>() {
                     @Override
