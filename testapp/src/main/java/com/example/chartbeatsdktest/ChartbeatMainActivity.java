@@ -67,7 +67,7 @@ public class ChartbeatMainActivity extends Activity {
 		super.onPause();
 		Tracker.userLeftView(VIEW_ID);
 	}
-	
+
 	public void simulateTyping(View view) {
 		Log.d(TAG, "Typing");
 		Tracker.userTyped();

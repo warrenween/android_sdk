@@ -118,6 +118,8 @@ final class ChartbeatServiceHandler extends Handler {
             case Tracker.ACTION_SET_POSITION:
                 setPosition(bundle);
                 break;
+            case Tracker.ACTION_PAUSE_TRACKER:
+                pauseTracker();
             default:
                 return;
         }
@@ -151,6 +153,10 @@ final class ChartbeatServiceHandler extends Handler {
         singleton.stopTracker();
         clearCachedSDKDetail();
         singleton = null;
+    }
+
+    public void pauseTracker() {
+        singleton.stopTracker();
     }
 
     private void clearCachedSDKDetail() {

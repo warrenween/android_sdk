@@ -4,6 +4,7 @@
  */
 package com.chartbeat.androidsdk;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
@@ -51,6 +52,10 @@ public final class Tracker {
 
     public static boolean DEBUG_MODE = false;
 
+    // Amount of time to wait until we assume the user has left the app
+    private static final int BACKGROUND_IDLE_WAIT_LIMIT_MS = 4000;
+    private static Subscription appIdleSubscription;
+
     private static Context appContext;
     private static String accountID;
 
@@ -70,6 +75,7 @@ public final class Tracker {
     static final String ACTION_SET_SECTIONS = "ACTION_SET_SECTIONS";
     static final String ACTION_SET_VIEW_LOADING_TIME = "ACTION_SET_VIEW_LOADING_TIME";
     static final String ACTION_SET_POSITION = "ACTION_SET_POSITION";
+    static final String ACTION_PAUSE_TRACKER = "ACTION_PAUSE_TRACKER";
 
     static final String KEY_ACCOUNT_ID = "KEY_ACCOUNT_ID";
     static final String KEY_DOMAIN = "KEY_DOMAIN";
@@ -113,11 +119,16 @@ public final class Tracker {
             throw new NullPointerException("context cannot be null");
         }
 
+        if (!(context instanceof Application)) {
+            throw new IllegalArgumentException("Application level context is required to initialize Chartbeat Android SDK");
+        }
+
         startSDK(accountId, domain, context);
     }
 
     private static void startSDK(String accountID, String domain, Context context) {
         appContext = context.getApplicationContext();
+        monitorAppStatus();
         Tracker.accountID = accountID;
 
         Intent intent = new Intent(context.getApplicationContext(), ChartbeatService.class);
@@ -127,7 +138,43 @@ public final class Tracker {
             intent.putExtra(KEY_DOMAIN, domain);
         }
 
-        appContext.startService(intent);
+        sendServiceSignal(intent);
+    }
+
+    private static void monitorAppStatus() {
+        ForegroundTracker.init((Application) appContext);
+
+        ForegroundTracker.get(appContext).addListener(new ForegroundTracker.Listener() {
+            @Override
+            public void onForegrounded() {
+                if (appIdleSubscription != null && !appIdleSubscription.isUnsubscribed()) {
+                    appIdleSubscription.unsubscribe();
+                }
+            }
+
+            @Override
+            public void onBackgrounded() {
+                if (appIdleSubscription == null || appIdleSubscription.isUnsubscribed()) {
+                    appIdleSubscription = Observable.timer(BACKGROUND_IDLE_WAIT_LIMIT_MS, TimeUnit.MILLISECONDS)
+                            .subscribe(new Subscriber<Long>() {
+                                @Override
+                                public void onCompleted() {
+
+                                }
+
+                                @Override
+                                public void onError(Throwable e) {
+
+                                }
+
+                                @Override
+                                public void onNext(Long aLong) {
+                                    pauseTracker();
+                                }
+                            });
+                }
+            }
+        });
     }
 
     /**
@@ -146,7 +193,7 @@ public final class Tracker {
         
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_SET_APP_REFERRER);
         intent.putExtra(KEY_APP_REFERRER, appReferrer);
-        appContext.startService(intent);
+        sendServiceSignal(intent);
     }
 
     /**
@@ -162,7 +209,22 @@ public final class Tracker {
         
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_STOP_TRACKER);
 
-        appContext.startService(intent);
+        sendServiceSignal(intent);
+    }
+
+    /**
+     * Pauses the tracker for idle applications
+     */
+    public static void pauseTracker() {
+        if (appContext == null) {
+            return;
+        }
+
+        Intent intent = new Intent(appContext, ChartbeatService.class);
+
+        intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_PAUSE_TRACKER);
+
+        sendServiceSignal(intent);
     }
 
     /**
@@ -201,7 +263,7 @@ public final class Tracker {
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_TRACK_VIEW);
         intent.putExtra(KEY_VIEW_ID, viewId);
         intent.putExtra(KEY_VIEW_TITLE, viewTitle);
-        appContext.startService(intent);
+        sendServiceSignal(intent);
     }
 
     /**
@@ -256,7 +318,7 @@ public final class Tracker {
         intent.putExtra(KEY_CONTENT_HEIGHT, totalContentHeight);
         intent.putExtra(KEY_DOC_WIDTH, fullyRenderedDocWidth);
 
-        appContext.startService(intent);
+        sendServiceSignal(intent);
     }
 
     private static void resetUserInteractionMonitor() {
@@ -285,7 +347,7 @@ public final class Tracker {
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_LEFT_VIEW);
         intent.putExtra(KEY_VIEW_ID, viewId);
 
-        appContext.startService(intent);
+        sendServiceSignal(intent);
     }
 
     /**
@@ -309,7 +371,7 @@ public final class Tracker {
 
         Intent intent = new Intent(appContext, ChartbeatService.class);
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_USER_INTERACTED);
-        appContext.startService(intent);
+        sendServiceSignal(intent);
 
         userInteractSubscription = Observable.timer(USER_INTERACT_WINDOW_IN_MILLISECONDS, TimeUnit.MILLISECONDS)
                 .observeOn(Schedulers.io())
@@ -343,7 +405,7 @@ public final class Tracker {
         
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_USER_TYPED);
 
-        appContext.startService(intent);
+        sendServiceSignal(intent);
     }
 
     /**
@@ -363,7 +425,7 @@ public final class Tracker {
 
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_SET_DOMAIN);
         intent.putExtra(KEY_DOMAIN, domain);
-        appContext.startService(intent);
+        sendServiceSignal(intent);
     }
 
     /**
@@ -383,7 +445,7 @@ public final class Tracker {
 
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_SET_SUBDOMAIN);
         intent.putExtra(KEY_SUBDOMAIN, subdomain);
-        appContext.startService(intent);
+        sendServiceSignal(intent);
     }
 
     /**
@@ -422,7 +484,7 @@ public final class Tracker {
         
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_SET_ZONES);
         intent.putExtra(KEY_ZONES, zones);
-        appContext.startService(intent);
+        sendServiceSignal(intent);
     }
 
     /**
@@ -459,7 +521,7 @@ public final class Tracker {
         
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_SET_AUTHORS);
         intent.putExtra(KEY_AUTHORS, authors);
-        appContext.startService(intent);
+        sendServiceSignal(intent);
     }
 
     /**
@@ -496,7 +558,7 @@ public final class Tracker {
         
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_SET_SECTIONS);
         intent.putExtra(KEY_SECTIONS, sections);
-        appContext.startService(intent);
+        sendServiceSignal(intent);
     }
 
     /**
@@ -517,7 +579,7 @@ public final class Tracker {
         
         intent.putExtra(KEY_SDK_ACTION_TYPE, ACTION_SET_VIEW_LOADING_TIME);
         intent.putExtra(KEY_VIEW_LOADING_TIME, pageLoadTime);
-        appContext.startService(intent);
+        sendServiceSignal(intent);
     }
 
     /**
@@ -546,7 +608,7 @@ public final class Tracker {
         intent.putExtra(KEY_WINDOW_HEIGHT, scrollWindowHeight);
         intent.putExtra(KEY_CONTENT_HEIGHT, totalContentHeight);
         intent.putExtra(KEY_DOC_WIDTH, fullyRenderedDocWidth);
-        appContext.startService(intent);
+        sendServiceSignal(intent);
     }
 
     public static void didInit() {
@@ -558,6 +620,14 @@ public final class Tracker {
     public static void didStartTracking() {
         if (appContext == null) {
             throw new IllegalStateException("Chartbeat: View tracking hasn't started, please call Tracker.trackView() in onResume() first");
+        }
+    }
+
+    private static void sendServiceSignal(Intent intent) {
+        try {
+            appContext.startService(intent);
+        } catch (IllegalStateException e) {
+            // Preventive measure for Android Oreo background limits.
         }
     }
 }

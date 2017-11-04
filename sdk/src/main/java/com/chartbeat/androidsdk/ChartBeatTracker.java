@@ -26,7 +26,6 @@ final class ChartBeatTracker {
     private static boolean firstPing = true;
 
     private static PingService pingService;
-    private static LocationService locationService;
 
     private final WeakReference<Context> context;
     private final AppInfo appInfo;
@@ -56,7 +55,6 @@ final class ChartBeatTracker {
         pingService = new PingService(userAgent);
 
         this.appInfo = new AppInfo(context.get(), accountID, domain);
-        locationService = new LocationService();
         this.userInfo = new UserInfo(context.get());
 
 		this.currentViewTracker = null;
@@ -84,7 +82,6 @@ final class ChartBeatTracker {
 
     synchronized void trackViewImpl(final String viewId, final String viewTitle,
                                     final int x, final int w, final int y, final int o) {
-        ForegroundTracker.activityStarted();
         engagementTracker.userEnteredView();
         userInfo.visited();
 
@@ -125,16 +122,8 @@ final class ChartBeatTracker {
         this.pingParams.addOneTimeParameter(QueryKeys.DOCUMENT_WIDTH);
         this.pingParams.addOneTimeParameter(QueryKeys.MAX_SCROLL_DEPTH);
 
-        updateLocation();
-
         pingManager.restart();
     }
-
-	private synchronized void updateLocation() {
-        locationService.updateLocation(context.get());
-        pingParams.addOneTimeParameter(QueryKeys.LONGITUDE);
-		pingParams.addOneTimeParameter(QueryKeys.LATITUDE);
-	}
 
     synchronized void userInteractedImpl() {
         engagementTracker.userEngaged();
@@ -152,7 +141,6 @@ final class ChartBeatTracker {
 	}
 
     synchronized void userLeftViewImpl(String viewId) {
-        ForegroundTracker.activityEnded();
         pingManager.setInBackground(true);
         engagementTracker.userLeftView();
         Logger.d(TAG, appInfo.toString() + " :: USER LEFT");
@@ -338,28 +326,37 @@ final class ChartBeatTracker {
 
     private void handlePingResponseCode(int code, EngagementTracker.EngagementSnapshot engagementSnapshot) {
         synchronized( this ) {
-            final boolean isInBackground = ForegroundTracker.isInBackground();
-            pingParams.pingComplete(code);
-            if (code == 503) {
-                ++sequentialErrors;
-            } else {
-                sequentialErrors = 0;
-            }
-            // System.out.println( sequentialErrors );
-            if (sequentialErrors == 3) {
-                sequentialErrors = 0;
-                pingParams.pingError();
-                pingManager.suspendDueToServerBusy();
-            }
-            pingManager.setInBackground(isInBackground);
-            if (code == 500 || code == 400) {
-                engagementTracker.lastPingFailed(engagementSnapshot);
-                pingManager.retryImmediately();
-            }
-            if (code == 200) {
-                lastSuccessfulPingTime = System.currentTimeMillis();
-                if (firstPing) {
-                    firstPing = false;
+            // Only process ping response when able to
+            if (handler.getLooper().getThread().isAlive()) {
+                boolean isInBackground;
+                try {
+                    isInBackground = ForegroundTracker.get().isInBackground();
+                } catch (IllegalStateException e) {
+                    return;
+                }
+
+                pingParams.pingComplete(code);
+                if (code == 503) {
+                    ++sequentialErrors;
+                } else {
+                    sequentialErrors = 0;
+                }
+                // System.out.println( sequentialErrors );
+                if (sequentialErrors == 3) {
+                    sequentialErrors = 0;
+                    pingParams.pingError();
+                    pingManager.suspendDueToServerBusy();
+                }
+                pingManager.setInBackground(isInBackground);
+                if (code == 500 || code == 400) {
+                    engagementTracker.lastPingFailed(engagementSnapshot);
+                    pingManager.retryImmediately();
+                }
+                if (code == 200) {
+                    lastSuccessfulPingTime = System.currentTimeMillis();
+                    if (firstPing) {
+                        firstPing = false;
+                    }
                 }
             }
         }
