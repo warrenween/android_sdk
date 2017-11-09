@@ -37,7 +37,7 @@ ext {
     siteUrl = 'https://github.com/chartbeat-labs/android_sdk'
     gitUrl = 'https://github.com/dcendents/android-maven-gradle-plugin.git'
 
-    libraryVersion = '1.3.4'
+    libraryVersion = '1.3.5-beta'
 
     developerId = 'rmangi'
     developerName = 'Rick Mangi'
