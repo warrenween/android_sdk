@@ -63,12 +63,15 @@ final class PingManager {
 
                     @Override
                     public void onNext(Object o) {
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                runTask();
-                            }
-                        });
+                        if (handler.getLooper().getThread().isAlive()) {
+                            // Only ping on an alive thread
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    runTask();
+                                }
+                            });
+                        }
                     }
                 };
     }

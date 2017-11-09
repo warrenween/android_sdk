@@ -32,6 +32,10 @@ public class ChartbeatService extends Service {
 
     @Override
     public void onCreate() {
+        init();
+    }
+
+    private void init() {
         if (bgThread == null || !bgThread.isAlive()) {
             bgThread = new HandlerThread(TRACKER_THREAD, Process.THREAD_PRIORITY_BACKGROUND);
             bgThread.start();
@@ -39,7 +43,9 @@ public class ChartbeatService extends Service {
 
         String userAgent = SystemUtils.getSystemUserAgent(this);
 
-        handler = new ChartbeatServiceHandler(new WeakReference<Context>(this), bgThread.getLooper(), userAgent);
+        if (handler == null) {
+            handler = new ChartbeatServiceHandler(new WeakReference<Context>(this), bgThread.getLooper(), userAgent);
+        }
     }
 
     @Override
@@ -57,6 +63,7 @@ public class ChartbeatService extends Service {
     @Override
     public void onDestroy() {
         handler.removeCallbacksAndMessages(null);
+        handler.pauseTracker();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             if (bgThread.getLooper() != null) {
