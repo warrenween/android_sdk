@@ -49,10 +49,8 @@ final class ChartbeatServiceHandler extends Handler {
         handleMessageType(actionType, bundle);
     }
 
-    private boolean isSDKInitialized() {
-        boolean isInitialized = singleton != null;
-
-        return isInitialized;
+    private static boolean isSDKInitialized() {
+        return singleton != null;
     }
 
     private void reInitSDKFromBackground() {
@@ -145,17 +143,29 @@ final class ChartbeatServiceHandler extends Handler {
     }
 
     public void setAppReferrer(Bundle bundle) {
+        if (!isSDKInitialized()) {
+            return;
+        }
+
         String appReferrer = bundle.getString(Tracker.KEY_APP_REFERRER);
         singleton.setExternalReferrer(appReferrer);
     }
 
     public void stopTracker() {
+        if (!isSDKInitialized()) {
+            return;
+        }
+
         singleton.stopTracker();
         clearCachedSDKDetail();
         singleton = null;
     }
 
     public void pauseTracker() {
+        if (!isSDKInitialized()) {
+            return;
+        }
+
         singleton.stopTracker();
     }
 
@@ -169,6 +179,10 @@ final class ChartbeatServiceHandler extends Handler {
     }
 
     public void trackView(Bundle bundle) {
+        if (!isSDKInitialized()) {
+            return;
+        }
+
         String viewId = bundle.getString(Tracker.KEY_VIEW_ID);
         String viewTitle = bundle.getString(Tracker.KEY_VIEW_TITLE);
 
@@ -182,19 +196,35 @@ final class ChartbeatServiceHandler extends Handler {
     }
 
     public static void userLeftView(Bundle bundle) {
+        if (!isSDKInitialized()) {
+            return;
+        }
+
         String viewId = bundle.getString(Tracker.KEY_VIEW_ID);
         singleton.userLeftViewImpl(viewId);
     }
 
     public static void userInteracted() {
+        if (!isSDKInitialized()) {
+            return;
+        }
+
         singleton.userInteractedImpl();
     }
 
     public static void userTyped() {
+        if (!isSDKInitialized()) {
+            return;
+        }
+
         singleton.userTypedImpl();
     }
 
     public static void setDomain(Bundle bundle) {
+        if (!isSDKInitialized()) {
+            return;
+        }
+
         if (singleton.isNotTrackingAnyView()) {
             Logger.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
             return;
@@ -204,6 +234,10 @@ final class ChartbeatServiceHandler extends Handler {
     }
 
     public static void setSubdomain(Bundle bundle) {
+        if (!isSDKInitialized()) {
+            return;
+        }
+
         if (singleton.isNotTrackingAnyView()) {
             Logger.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
             return;
@@ -213,16 +247,24 @@ final class ChartbeatServiceHandler extends Handler {
     }
 
     public static void setZones(Bundle bundle) {
+        if (!isSDKInitialized()) {
+            return;
+        }
+
         if (singleton.isNotTrackingAnyView()) {
             Logger.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
             return;
         }
-        
+
         String zones = bundle.getString(Tracker.KEY_ZONES);
         singleton.updateZones(zones);
     }
 
     public static void setAuthors(Bundle bundle) {
+        if (!isSDKInitialized()) {
+            return;
+        }
+
         if (singleton.isNotTrackingAnyView()) {
             Logger.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
             return;
@@ -232,6 +274,10 @@ final class ChartbeatServiceHandler extends Handler {
     }
 
     public static void setSections(Bundle bundle) {
+        if (!isSDKInitialized()) {
+            return;
+        }
+
         if (singleton.isNotTrackingAnyView()) {
             Logger.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
             return;
@@ -241,6 +287,10 @@ final class ChartbeatServiceHandler extends Handler {
     }
 
     public static void setViewLoadTime(Bundle bundle) {
+        if (!isSDKInitialized()) {
+            return;
+        }
+
         if (singleton.isNotTrackingAnyView()) {
             Logger.e(TAG, "View tracking hasn't started, please call Tracker.trackView() first");
             return;
@@ -250,10 +300,11 @@ final class ChartbeatServiceHandler extends Handler {
     }
 
     public static void setPosition(Bundle bundle) {
-        if (singleton == null) {
+        if (!isSDKInitialized()) {
             Logger.e(TAG, "Chartbeat SDK has not been initialized");
             return;
         }
+
         int scrollPositionTop = bundle.getInt(Tracker.KEY_POSITION_TOP, -1);
         int scrollWindowHeight = bundle.getInt(Tracker.KEY_WINDOW_HEIGHT, -1);
         int totalContentHeight = bundle.getInt(Tracker.KEY_CONTENT_HEIGHT, -1);
