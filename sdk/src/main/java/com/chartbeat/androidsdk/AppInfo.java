@@ -65,7 +65,7 @@ final class AppInfo {
     }
 
     String getSdkVersion() {
-        return SDK_NAME + "_" + BuildConfig.VERSION_CODE;
+        return String.valueOf(BuildConfig.VERSION_CODE);
     }
 
     String getDeviceScreenWidth() {

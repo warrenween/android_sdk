@@ -36,7 +36,7 @@ final class ChartBeatTracker {
     private ViewTracker currentViewTracker;
 
     private PingParams pingParams;
-    
+
 	/** set to true to simulate a very long response to pings (10 seconds) */
 	public static final boolean SIMULATE_VERY_SLOW_SERVER = false;
 
@@ -66,12 +66,12 @@ final class ChartBeatTracker {
 
         Logger.d(TAG, appInfo.toString());
 	}
-    
+
     synchronized void stopTracker() {
         pingManager.stop();
         engagementTracker.stop();
     }
-    
+
     synchronized void setExternalReferrer(String appReferrer) {
         appInfo.setExternalReferrer(appReferrer);
     }
@@ -348,7 +348,7 @@ final class ChartBeatTracker {
                     pingManager.suspendDueToServerBusy();
                 }
                 pingManager.setInBackground(isInBackground);
-                if (code == 500 || code == 400) {
+                if (code == 500 || code == 400 || code == 202) {
                     engagementTracker.lastPingFailed(engagementSnapshot);
                     pingManager.retryImmediately();
                 }
