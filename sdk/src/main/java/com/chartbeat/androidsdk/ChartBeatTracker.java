@@ -22,6 +22,8 @@ final class ChartBeatTracker {
 
     private static final long MILLISECONDS_IN_ONE_SECOND = 1000;
 
+    private static final int PING_ENDPOINT_VERSION = 1;
+
     private static Handler handler;
     private static boolean firstPing = true;
 
@@ -268,6 +270,11 @@ final class ChartBeatTracker {
             parameters.put(QueryKeys.TIME_ZONE, String.valueOf(timezoneOffset));
 
             addParameterIfRequired(parameters, QueryKeys.SCREEN_WIDTH, appInfo.getDeviceScreenWidth());
+
+            // The tell memoryfly which interaction or API version is expected.
+            // Setting <MEMFLY_API_VERSION> to 1 indicates that 202 status codes are
+            // expected rather than 500 when referrer is not present in the ping.
+            addParameterIfRequired(parameters, QueryKeys.MEMFLY_API_VERSION, String.valueOf(PING_ENDPOINT_VERSION));
 
 //            if (locationService != null) {
 //                addParameterIfRequired(parameters, QueryKeys.LONGITUDE, locationService.getLongitude());

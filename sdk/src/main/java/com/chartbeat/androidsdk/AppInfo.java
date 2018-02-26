@@ -8,7 +8,7 @@ import android.graphics.Point;
  */
 final class AppInfo {
     private static final String TAG = AppInfo.class.getSimpleName();
-    private static final String SDK_NAME = "android";
+    private static final int ANDROID_SDK_VERSION_BASE = 2000;
 
     private static String packageName;
     private static String referrer;
@@ -65,7 +65,7 @@ final class AppInfo {
     }
 
     String getSdkVersion() {
-        return String.valueOf(BuildConfig.VERSION_CODE);
+        return String.valueOf(ANDROID_SDK_VERSION_BASE + BuildConfig.VERSION_CODE);
     }
 
     String getDeviceScreenWidth() {

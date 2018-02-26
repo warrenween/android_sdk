@@ -70,5 +70,7 @@ final class QueryKeys {
     public static final String SCREEN_WIDTH = "S";
     public static final String PAGE_LOAD_TIME = "b";
 
+    public static final String MEMFLY_API_VERSION = "Z";
+
     public static final String END_MARKER = "_";
 }
